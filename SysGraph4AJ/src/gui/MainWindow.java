@@ -86,10 +86,10 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	}
 
 	/**
-	 * Cria o bot„o 'Analisar'
+	 * Cria o bot√£o 'Analisar'
 	 * 
 	 * @return
-	 * 		o bot„o criado
+	 * 		o bot√£o criado
 	 */
 	private JButton createAnalizeButton() {
 		JButton btn = new JButton("Analyse");
@@ -100,10 +100,10 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	}
 
 	/**
-	 * Cria o bot„o 'Escolha o diretÛrio bin'
+	 * Cria o bot√£o 'Escolha o diret√≥rio bin'
 	 * 
 	 * @return
-	 * 		o bot„o criado
+	 * 		o bot√£o criado
 	 */
 	private JButton createChoosePathButton() {
 		JButton btn = new JButton("Choose path");
@@ -149,7 +149,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 
 	/**
 	 * 
-	 * @return A thread que ser· respons·vel pela construÁ„o da tela principal
+	 * @return A thread respons√°vel pela constru√ß√£o da tela principal
 	 */
 	private static Thread getMainWindowThread() {
 		return new Thread() {
@@ -163,7 +163,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 
 	/**
 	 * 
-	 * @return A thread que ser· respons·vel pela construÁ„o dos grafos
+	 * @return A thread respons√°vel pela constru√ß√£o dos grafos
 	 */
 	private static Thread getVisualizationViewerThread() {
 		return new Thread(){
@@ -199,11 +199,11 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	}
 
 	/**
-	 * Retorna um objeto de visualizaÁ„o {@link VisualizationViewer} representado
+	 * Retorna um objeto de visualiza√ß√£o {@link VisualizationViewer} representado
 	 * a partir de um objeto da classe {@link SysRoot}
 	 * 
 	 * @param root
-	 * 		Par‚metro que referencia a raiz do programa.
+	 * 		ParÔøΩmetro que referencia a raiz do programa.
 	 * @return
 	 */
 	private VisualizationViewer<Element, Float> createVisualizationViewerBySysRoot(
@@ -219,7 +219,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	}
 
 	/**
-	 * Listener respons·vel por analisar o pacote escolhido.
+	 * Listener respons√°vel por analisar o pacote escolhido.
 	 * 
 	 * @author Robson
 	 *
@@ -232,7 +232,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	}
 
 	/**
-	 * Listener respons·vel por abrir uma janela onde nesta ser· escolhida as pastas e os arquivos que ser„o analisados. 
+	 * Listener respons√°vel por abrir uma janela onde nesta ser√° escolhida as pastas e os arquivos a serem analisados. 
 	 * 
 	 * @author Robson
 	 *

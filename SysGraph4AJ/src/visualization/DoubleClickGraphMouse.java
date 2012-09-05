@@ -111,9 +111,9 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	private AbstractAction getViewGraphFlowControlScreen(final Element el) {
 		return new AbstractAction("View Graph Flow Control"){
 			public void actionPerformed(ActionEvent arg0) {
-				//TODO adicionar opção "Gerar grafo de fluxo de controle"
+				//TODO adicionar opÃ§Ã£o "Gerar grafo de fluxo de controle"
 				JFrame info = new JFrame(el.getFullyQualifiedName());
-				JTextArea area = new JTextArea(el.viewState());
+				JTextArea area = new JTextArea("Gerar grafo de fluxo de controle");
 				JScrollPane scroll = new JScrollPane(area);
 				info.add(scroll);
 				area.setEditable(false);
