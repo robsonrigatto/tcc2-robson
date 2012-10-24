@@ -22,11 +22,9 @@ import javax.swing.UIManager;
 import model.Element;
 import model.SysPackage;
 import model.SysRoot;
-import visualization.ModelToGraph;
 import analysis.SysAnalysis;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.TreeLayout;
-import edu.uci.ics.jung.graph.DelegateForest;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 
@@ -37,7 +35,6 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 	private static boolean window = false;
 	private static VisualizationViewer<Element, Float> visualizationViewer = null;
 	private static boolean isVisualizationViewerEnabled = false;
-
 	private String path = "bin";
 	private JTextArea textArea = new JTextArea();
 	private Container center;
@@ -190,32 +187,13 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 			this.textArea.append("Beginning analysis\n");
 			SysRoot root = SysAnalysis.initialModel(this.path); // do the initial model
 			this.sysRoot = root;
-			VisualizationViewer<Element, Float> visualizationViewer = this.createVisualizationViewerBySysRoot(root);
+			VisualizationViewer<Element, Float> visualizationViewer 
+				= SysGraph4AJUtils.createVisualizationViewerBySysRoot(root, this.deltaX, this.deltaY);
 			this.setCenterPanel(visualizationViewer);
 			visualizationViewer.updateUI();
 			this.textArea.append(root.getPackages().toString() + "\n");
 			this.makeGoodVisual(visualizationViewer);
 		}
-	}
-
-	/**
-	 * Retorna um objeto de visualização {@link VisualizationViewer} representado
-	 * a partir de um objeto da classe {@link SysRoot}
-	 * 
-	 * @param root
-	 * 		Par�metro que referencia a raiz do programa.
-	 * @return
-	 */
-	private VisualizationViewer<Element, Float> createVisualizationViewerBySysRoot(
-			SysRoot root) {
-		DelegateTree<Element, Float> delegateTree = new  DelegateTree<Element, Float>();
-		delegateTree.addVertex(root);
-		delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
-		DelegateForest<Element, Float> delegateForest = new DelegateForest<Element, Float>(delegateTree);
-		VisualizationViewer<Element, Float> visualizationViewer = new VisualizationViewer<Element, Float>(
-				new TreeLayout<Element, Float>(
-						delegateForest, this.deltaX, this.deltaY));
-		return visualizationViewer;
 	}
 
 	/**

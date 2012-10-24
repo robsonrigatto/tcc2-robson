@@ -20,7 +20,11 @@ import javax.swing.JTextArea;
 import model.Element;
 import model.SysRoot;
 import visualization.DoubleClickGraphMouse;
+import visualization.ModelToGraph;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
+import edu.uci.ics.jung.algorithms.layout.TreeLayout;
+import edu.uci.ics.jung.graph.DelegateForest;
+import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.Layer;
 import edu.uci.ics.jung.visualization.RenderContext;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
@@ -47,6 +51,7 @@ public class SysGraph4AJUtils {
 
 	/**
 	 * Same thing as setCenter but this time it makes a good visual for the Visualization Viewer*/
+	@SuppressWarnings("unchecked")
 	public static void setCenterPanel(Container pane, GUIWindowInterface target){
 		Container c = target.getContentPane();
 		c.remove(target.getCenter()); 
@@ -101,6 +106,26 @@ public class SysGraph4AJUtils {
 		MutableTransformer layout = vv.getRenderContext().getMultiLayerTransformer().getTransformer(Layer.LAYOUT);
 		layout.translate(deltaX, deltaY);
 		
+	}
+	
+	/**
+	 * Retorna um objeto de visualização {@link VisualizationViewer} representado
+	 * a partir de um objeto da classe {@link SysRoot}
+	 * 
+	 * @param root
+	 * 		Par�metro que referencia a raiz do programa.
+	 * @return
+	 */
+	public static VisualizationViewer<Element, Float> createVisualizationViewerBySysRoot(
+			SysRoot root, int deltaX, int deltaY) {
+		DelegateTree<Element, Float> delegateTree = new  DelegateTree<Element, Float>();
+		delegateTree.addVertex(root);
+		delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
+		DelegateForest<Element, Float> delegateForest = new DelegateForest<Element, Float>(delegateTree);
+		VisualizationViewer<Element, Float> visualizationViewer = new VisualizationViewer<Element, Float>(
+				new TreeLayout<Element, Float>(
+						delegateForest, deltaX, deltaY));
+		return visualizationViewer;
 	}
 	
 

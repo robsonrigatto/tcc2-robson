@@ -34,7 +34,136 @@ public class MethodAnalysis {
 	 * */
 	public static void analyseMethod(SysMethod sm, SysRoot root){
 		System.out.println("[MethodAnalysis]: analysing method: "+sm);
-		ClassParser p=null;
+		JavaClass jc = getClassFromMethod(sm, root); /* get BCEL JavaClass model */
+
+		List<String> methodCalls = getMethodCallsFromMethodArray(sm, jc.getMethods()); /* find SysMethod in BCEL.JavaClass */
+
+		System.out.println("[MethodAnalysis]: methodCalls: " + methodCalls);
+		//for each call this method does, we need to find its called method
+		for(String called : methodCalls){
+			called = removeLineNumber(called);
+			called = removeInvokeCommand(called);
+			String sig = getSignature(called);
+			System.out.println("[MethodAnalysis]: Looking for \""+called+"\"");
+			//assert(called.split(" ").length>=2);
+			if(called.split(" ").length<2) throw new RuntimeException("[MethodAnalysis] called's requirements dont match(missing return type)\n\t"+called);
+			//assert(called.contains("."));
+			if(!called.contains(".")) return;//BCEL error method call to { invoke* " (number) }
+			if(called==null || called.equals("") || called.equals(" ")) continue;
+			//now we have the called method fully qualified name and its signature.
+			//a couple of good references to work with
+			Element lastInModel=root.getMax(called, sig);
+			System.out.println("[MethodAnalysis]: max: \""+lastInModel+"\"");
+			Element nextNotInModel=null;
+			SysMethod calledMethod = null;
+
+
+			if(lastInModel!=null && lastInModel instanceof SysMethod){
+				calledMethod = (SysMethod)lastInModel;
+			}
+
+
+			if(lastInModel!=null && !(lastInModel instanceof SysMethod)){
+				try{
+					nextNotInModel = tryOption(lastInModel, getFixedString(called,lastInModel),sig+"",root);
+					//remembering that tryOption never returns null, In such case as it doesnt find the required method it 
+					//throws a PathNotFoundException
+					if(!addElementToElement_notDependency(lastInModel,nextNotInModel)){
+						System.err.println("[MethodAnalysis]: error when trying to add "+nextNotInModel.getName() +" to "+ lastInModel);
+					}
+
+					calledMethod = root.getMethodFromString(called, sig);
+					System.out.println("[MethodAnalysis]: next: \"" + nextNotInModel + "\"");
+					System.out.println("[MethodAnalysis]: called: \""+calledMethod+"\"");
+
+				} catch(PathNotFoundException pnfe){
+					System.out.println("[MethodAnalysis]: path :"+called+" not found.");
+				}
+			}
+			if(calledMethod != null) {
+				addDependency(sm,calledMethod);
+			} else {
+				//bad... 
+				System.out.println("[MethodAnalysis]: couldnt find \""+called+"\"");
+			}
+		}
+		sm.setIsAnalysed(true);
+	}
+
+	/**
+	 * Obtém as chamadas de método do alvo.
+	 * 
+	 * @param sysMethod
+	 * 		método analisado inicialmente
+	 * @param methodArray
+	 * 		todos os métodos da classe desse {@link SysMethod}
+	 * @return
+	 * 		lista de chamadas de métodos
+	 */
+	private static List<String> getMethodCallsFromMethodArray(SysMethod sysMethod, Method[] methodArray) {
+		SysMethod bcelMethod = null;
+		List<String> methodCalls = null;
+
+		for(Method method : methodArray){
+			Type t = method.getReturnType();
+
+			bcelMethod = new SysMethod(method.isStatic(), method.getName(), t.toString(), SysAnalysis.getVisibility(method));
+			String sig = method.getSignature();
+			sig = sig.substring(sig.indexOf("(")+1, sig.indexOf(")"));
+			bcelMethod.addParameter(analyseSignature(sig));
+
+			if(bcelMethod.isSimilar(sysMethod) && sysMethod.equalsParamList(sig)){
+				
+				List<String> exceptionsCatched = new ArrayList<String>();
+				Code methodCode = method.getCode();
+				
+				if(methodCode == null) continue;
+				
+				methodCalls = MethodAnalysis.getMethodCalls(method.getCode().toString());
+				CodeException[] exceptions = methodCode.getExceptionTable();
+				
+				for(int i = 0; i < exceptions.length; ++i){
+					String a = exceptions[i].toString(methodCode.getConstantPool());
+				
+					for(int j = 0; j < 10; j++) {
+						String numberAsString = Integer.toString(j);
+						if(a.contains(numberAsString)) a = a.replaceAll(numberAsString, "");
+					}
+					
+					String s = a.substring(0, a.indexOf("("));
+					exceptionsCatched.add(s);
+				}
+
+				if(method.getExceptionTable()!=null){
+					for (String s1 : method.getExceptionTable().getExceptionNames()){
+						bcelMethod.addException(s1);
+					}	
+				}
+
+				bcelMethod.addCatchedException(exceptionsCatched);
+				break;
+			}
+		}
+
+		/*add contents of BCELMethod in SysMethod sm*/
+		if(bcelMethod != null) {
+			sysMethod.addCatchedException(bcelMethod.getCatchedExceptions());
+			sysMethod.addException(bcelMethod.getExceptions());
+		}
+		return methodCalls;
+	}
+
+	/**
+	 * Carrega a classe do respectivo método.
+	 * 
+	 * @param sm
+	 * 		método alvo
+	 * @param root
+	 * 		raiz da análise
+	 * @return BCEL java class from {@link SysMethod}
+	 */
+	private static JavaClass getClassFromMethod(SysMethod sm, SysRoot root) {
+		ClassParser p;
 		JavaClass jc=null;
 		String aux1 = "";
 		Element owner = sm.getOwner();
@@ -85,135 +214,8 @@ public class MethodAnalysis {
 				cfe.printStackTrace();
 			}
 
-		}/*get BCEL JavaClass model*/
-
-		//>>>>>>>>> find SysMethod in BCEL.JavaClass
-		Method[] vm = jc.getMethods();
-		Type t=null;
-		SysMethod BCELMethod=null;
-		List<String> methodCalls = null;
-		List<String> exceptionsCatched = new ArrayList<String>();
-
-		for(Method method : vm){
-			t=method.getReturnType();
-
-			BCELMethod=new SysMethod(method.isStatic(), method.getName(), t.toString(), SysAnalysis.getVisibility(method));
-			String sig = method.getSignature();
-			sig = sig.substring(sig.indexOf("(")+1, sig.indexOf(")"));
-			BCELMethod.addParameter(analyseSignature(sig));
-
-			if(BCELMethod.isSimilar(sm) && sm.equalsParamList(sig)){
-				Code methodCode = method.getCode();
-				if(methodCode==null) continue;
-				methodCalls = MethodAnalysis.getMethodCalls(method.getCode().toString());
-				//<<<<<<< .mine
-				//Iterator<String> i = methodCalls.iterator();
-				//String s;
-				//while(i.hasNext()){
-				//s=i.next();
-				//if(s.contains("Exception") && s.lastIndexOf("Exception") < s.lastIndexOf(".")){//string exception must not be part of the methods name
-				//exceptionsCalls.add(s);
-				//i.remove();
-				//}
-				//=======
-				//Iterator<String> i = methodCalls.iterator();
-				//String s;
-				//while(i.hasNext()){
-				//	s=i.next();
-				//	if(s.contains("Exception") && s.lastIndexOf("Exception")<s.lastIndexOf(".")){//string exception must not be part of the methods name
-				//		exceptionsCalls.add(s);
-				//		i.remove();
-				//	}
-				//}
-				CodeException[] exceptions = methodCode.getExceptionTable();
-				for(int i=0;i<exceptions.length;++i){
-					String a = exceptions[i].toString(methodCode.getConstantPool());
-					if(a.contains("0"))a=a.replaceAll("0", "");
-					if(a.contains("1"))a=a.replaceAll("1", "");
-					if(a.contains("2"))a=a.replaceAll("2", "");
-					if(a.contains("3"))a=a.replaceAll("3", "");
-					if(a.contains("4"))a=a.replaceAll("4", "");
-					if(a.contains("5"))a=a.replaceAll("5", "");
-					if(a.contains("6"))a=a.replaceAll("6", "");
-					if(a.contains("7"))a=a.replaceAll("7", "");
-					if(a.contains("8"))a=a.replaceAll("8", "");
-					if(a.contains("9"))a=a.replaceAll("9", "");
-					String s = a.substring(0, a.indexOf("("));
-					exceptionsCatched.add(s);
-					//Class<?> c1 = FileLoader.forName(s);
-					//System.out.println(Throwable.class.isAssignableFrom(c1));
-					//>>>>>>> .r38
-				}
-
-				if(method.getExceptionTable()!=null){
-					for (String s1 : method.getExceptionTable().getExceptionNames()){
-						BCELMethod.addException(s1);
-					}	
-				}
-
-				BCELMethod.addCatchedException(exceptionsCatched);
-				//BCELMethod.addException(exceptionsCalls);
-				//add method calls
-				break;
-			}
 		}
-
-		/*add contents of BCELMethod in SysMethod sm*/
-		if(BCELMethod!=null) {
-			sm.addCatchedException(BCELMethod.getCatchedExceptions());
-			sm.addException(BCELMethod.getExceptions());
-		}
-
-		System.out.println("[MethodAnalysis]: methodCalls: "+methodCalls);
-		//for each call this method does, we need to find its called method
-		for(String called : methodCalls){
-			called = removeLineNumber(called);
-			called = removeInvokeCommand(called);
-			String sig = getSignature(called);
-			System.out.println("[MethodAnalysis]: Looking for \""+called+"\"");
-			//assert(called.split(" ").length>=2);
-			if(called.split(" ").length<2) throw new RuntimeException("[MethodAnalysis] called's requirements dont match(missing return type)\n\t"+called);
-			//assert(called.contains("."));
-			if(!called.contains(".")) return;//BCEL error method call to { invoke* " (number) }
-			if(called==null || called.equals("") || called.equals(" ")) continue;
-			//now we have the called method fully qualified name and its signature.
-			//a couple of good references to work with
-			Element lastInModel=root.getMax(called, sig);
-			System.out.println("[MethodAnalysis]: max: \""+lastInModel+"\"");
-			Element nextNotInModel=null;
-			SysMethod calledMethod = null;
-
-
-			if(lastInModel!=null && lastInModel instanceof SysMethod){
-				calledMethod = (SysMethod)lastInModel;
-			}
-
-
-			if(lastInModel!=null && !(lastInModel instanceof SysMethod)){
-				try{
-					nextNotInModel = tryOption(lastInModel, getFixedString(called,lastInModel),sig+"",root);
-					//remembering that tryOption never returns null, In such case as it doesnt find the required method it 
-					//throws a PathNotFoundException
-					if(!addElementToElement_notDependency(lastInModel,nextNotInModel)){
-						System.err.println("[MethodAnalysis]: error when trying to add "+nextNotInModel.getName() +" to "+ lastInModel);
-					}
-
-					calledMethod = root.getMethodFromString(called, sig);
-					System.out.println("[MethodAnalysis]: next: \""+nextNotInModel+"\"");
-					System.out.println("[MethodAnalysis]: called: \""+calledMethod+"\"");
-
-				} catch(PathNotFoundException pnfe){
-					System.out.println("[MethodSnalysis]: path :"+called+" not found.");
-				}
-			}
-			if(calledMethod!=null) {
-				addDependency(sm,calledMethod);
-			} else {
-				//bad... 
-				System.out.println("[MethodAnalysis]: couldnt find \""+called+"\"");
-			}
-		}
-		sm.setIsAnalysed(true);
+		return jc;
 	}
 
 
@@ -230,7 +232,9 @@ public class MethodAnalysis {
 	}
 
 
-	/**redirects to the right tryOption*/
+	/**
+	 * Redirects to the right tryOption
+	 */
 	public static Element tryOption(Element m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
 		assert(m!=null);
 		if(m instanceof SysAspect) return tryOption((SysAspect)m,string, signature, sysRoot);
@@ -240,7 +244,7 @@ public class MethodAnalysis {
 		return null;
 	}
 
-	public static Element tryOption(SysAspect c, String pathToFind, String signature, SysRoot root) throws PathNotFoundException{
+	public static Element tryOption(SysAspect c, String pathToFind, String signature, SysRoot root) throws PathNotFoundException {
 		if(pathToFind.equals("") || c.isAnalysed()) {
 			System.err.println("[MethodAnalysis]: throwing exception because" +
 					(pathToFind.equals("")?" pathToFind==nothing": c.getName()+" is analysed.")+ "\n\tClass name:"+c.getName()+"\n\tPathToFind="+pathToFind);
@@ -300,8 +304,10 @@ public class MethodAnalysis {
 
 	}
 
-	/**try to find the path into the method, in this case, just checks the signature
-	 * Returns null if the given method is the method you are looking for.*/
+	/**
+	 * Try to find the path into the method, in this case, just checks the signature
+	 * Returns null if the given method is the method you are looking for.
+	 */
 	public static Element tryOption(SysMethod m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
 		//String sig = m.getSignature().substring(1,m.getSignature().lastIndexOf(")"));
 		if(string.equals("") /*&& m.getSignature().equals(signature)*/) return m;
@@ -309,7 +315,9 @@ public class MethodAnalysis {
 
 	}
 
-	/**tries to find the path into the given class, case success it returns the*/
+	/**
+	 * Tries to find the path into the given class, case success it returns the
+	 */
 	public static Element tryOption(SysClass c, String pathToFind,String signature, SysRoot r) throws PathNotFoundException {
 		if(pathToFind.equals("") || c.isAnalysed()) {
 			System.err.println("[MethodAnalysis]: throwing exception because" +
@@ -364,9 +372,11 @@ public class MethodAnalysis {
 		}
 	}
 
-	/**tries to find the path into the given SysPackage, if success return the next level of the hierarchy
+	/**
+	 * Tries to find the path into the given SysPackage, if success return the next level of the hierarchy
 	 * For example, if beginning from this package there are more packages to descend, returns the next package.
-	 * And if beginning from this package there are only classes until the required method, returns the next class.*/
+	 * And if beginning from this package there are only classes until the required method, returns the next class.
+	 */
 	public static Element tryOption(SysPackage p1, String pathToFind,String signature, SysRoot r) throws PathNotFoundException{
 		String path = r.getPath()+File.separator+
 				p1.getFullyQualifiedName().replace(".",File.separator);
@@ -435,9 +445,12 @@ public class MethodAnalysis {
 	}
 
 
-	/**Returns the corrected string to the element
+	/**
+	 * Returns the corrected string to the element
 	 * For example: if we pass sjc.unifesp.ict.dct.bcc.vespertino as string and 
-	 * sjc.unifesp.ict.dct as a package the return is bcc.vespertino as string*/
+	 * sjc.unifesp.ict.dct as a package the return is bcc.vespertino as string.
+	 * 
+	 */
 	public static String getFixedString(String str, Element e){
 		String corrected=str, e_name;
 		e_name=e.getFullyQualifiedName();
@@ -455,7 +468,9 @@ public class MethodAnalysis {
 		return corrected;
 	}
 
-	/**removes the 'invoke' declaration of a string representing the bytecode*/
+	/**
+	 * Removes the 'invoke' declaration of a string representing the bytecode
+	 */
 	public static String removeInvokeCommand(String withInvoke){
 		if(withInvoke==null) return null;
 		if(withInvoke.contains("invokevirtual")) withInvoke = withInvoke.replace("invokevirtual", "");
@@ -465,7 +480,9 @@ public class MethodAnalysis {
 		return withInvoke;
 	}
 
-	/**returns the signature of a string representing a method*/
+	/**
+	 * Returns the signature of a string representing a method
+	 */
 	public static String getSignature(String containsTheSig){
 		String first;
 		if(containsTheSig==null) return "";
@@ -480,7 +497,9 @@ public class MethodAnalysis {
 		return null;
 	}
 
-	/**removes the line number at the end of an string*/
+	/**
+	 * Removes the line number at the end of an string
+	 */
 	public static String removeLineNumber(String withLineNumber){
 		if(withLineNumber==null) return null;
 		String first;

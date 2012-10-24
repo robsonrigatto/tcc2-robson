@@ -10,22 +10,19 @@ import java.awt.Container;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
-import analysis.MethodAnalysis;
-
-import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
-import edu.uci.ics.jung.visualization.VisualizationViewer;
-
-import visualization.CallChainM2G;
-
-import model.SysRoot;
 import model.Element;
 import model.SysMethod;
+import model.SysRoot;
+import visualization.CallChainM2G;
+import analysis.MethodAnalysis;
+import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
+import edu.uci.ics.jung.visualization.VisualizationViewer;
 
 /**
  * @author Felipe Capodifoglio Zanichelli
  *
  */
-public class CallChainWindow extends JFrame implements GUIWindowInterface{
+public class CallChainWindow extends JFrame implements GUIWindowInterface {
 
 	private SysRoot root;
 	private SysMethod m;

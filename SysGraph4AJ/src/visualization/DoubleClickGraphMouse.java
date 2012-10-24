@@ -33,6 +33,7 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 
+import gui.ControlFlowGraphWindow;
 import gui.GUIWindowInterface;
 import gui.CallChainWindow;
 import gui.MainWindow;
@@ -67,6 +68,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 			final Layout l = visualizationViewer.getModel().getGraphLayout();
 			Element vertex = (Element)pickSupport.getVertex(l, p.getX(), p.getY());
 			JPopupMenu popup = new JPopupMenu();
+			final Element el = vertex;
 			if(vertex instanceof SysMethod){
 				final SysMethod m = (SysMethod)vertex;
 				popup.add(new AbstractAction("View Call Chain"){
@@ -82,11 +84,10 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 						w2.setVisible(true);
 					}
 				});
+				popup.add(this.getViewControlFlowGraphScreen(el));
 			}
 			if(vertex!=null){
-				final Element el = vertex;
 				popup.add(this.getViewPropertiesScreen(el));
-				popup.add(this.getViewGraphFlowControlScreen(el));
 			}
 			popup.show(visualizationViewer, e.getX(), e.getY());
 		}
@@ -108,17 +109,12 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	}
 
 	@SuppressWarnings("serial")
-	private AbstractAction getViewGraphFlowControlScreen(final Element el) {
+	private AbstractAction getViewControlFlowGraphScreen(final Element el) {
 		return new AbstractAction("View Graph Flow Control"){
 			public void actionPerformed(ActionEvent arg0) {
 				//TODO adicionar opção "Gerar grafo de fluxo de controle"
-				JFrame info = new JFrame(el.getFullyQualifiedName());
-				JTextArea area = new JTextArea("Gerar grafo de fluxo de controle");
-				JScrollPane scroll = new JScrollPane(area);
-				info.add(scroll);
-				area.setEditable(false);
-				info.pack();
-				info.setVisible(true);
+				ControlFlowGraphWindow w = new ControlFlowGraphWindow((SysMethod) el, sysRoot);
+				w.setVisible(true);
 			}
 		};
 	}
