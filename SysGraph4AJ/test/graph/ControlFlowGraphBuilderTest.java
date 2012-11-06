@@ -78,9 +78,7 @@ public class ControlFlowGraphBuilderTest {
 
 	@Test
 	@Ignore
-	public void aspectTest() {
-		//TODO
-		
+	public void aspectTest() {		
 		ControlFlowGraphBlockNode node0 = CONTROL_FLOW_GRAPH_BUILDER.build(ControlFlowGraphClassForTestUtils.class, "aspectMethod");
 		
 		Assert.assertNotNull(node0);
@@ -98,7 +96,6 @@ public class ControlFlowGraphBuilderTest {
 	}
 	
 	@Test
-	@Ignore
 	public void tryCatchTest() {
 		ControlFlowGraphBlockNode node0 = CONTROL_FLOW_GRAPH_BUILDER.build(ControlFlowGraphClassForTestUtils.class, "tryCatchMethod");
 		
@@ -108,5 +105,13 @@ public class ControlFlowGraphBuilderTest {
 		
 		ControlFlowGraphBlockNode node1 = childrenBlocks.get(0);
 		Assert.assertTrue(node1.isTryStatement());
+		//try/catch/finally do try de cima
+		Assert.assertEquals(3, node1.getChildrenBlocks().size());
+		ControlFlowGraphBlockNode node3 = node1.getChildrenBlocks().get(0);
+		Assert.assertFalse(node3.isTryStatement());
+		
+		ControlFlowGraphBlockNode node2 = childrenBlocks.get(1);
+		
+		Assert.assertFalse(node2.isTryStatement());
 	}
 }

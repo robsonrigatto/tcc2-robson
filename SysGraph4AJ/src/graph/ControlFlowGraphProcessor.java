@@ -1,7 +1,8 @@
 package graph;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.bcel.generic.BranchHandle;
 import org.apache.bcel.generic.CodeExceptionGen;
@@ -46,7 +47,7 @@ public class ControlFlowGraphProcessor {
 	 * @return nó raiz com todas as instruções armazenadas em seu posigrafo
 	 */
 	private ControlFlowGraphBlockNode processInstruction(InstructionHandle instruction) {
-		return this.processInstruction(instruction, null, new ArrayList<Integer>());
+		return this.processInstruction(instruction, null, new HashSet<Integer>());
 	}
 
 
@@ -65,7 +66,7 @@ public class ControlFlowGraphProcessor {
 	 * 
 	 * @return nó raiz com todas as instruções armazenadas em seu grafo
 	 */ 
-	private ControlFlowGraphBlockNode processInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, List<Integer> processedInstructionIds) {
+	private ControlFlowGraphBlockNode processInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds) {
 		ControlFlowGraphBlockNode blockNode = new ControlFlowGraphBlockNode();
 
 		if(root == null || root.getInstructions().size() == 0) {
@@ -75,8 +76,7 @@ public class ControlFlowGraphProcessor {
 			notNullConditional, instructionHasNotProcessedConditional;
 		do {
 			CodeExceptionGen exceptionBlock = this.getExceptionBlock(instructionHandle, processedInstructionIds);
-			//exceptionBlock != null && !processedInstructionIds.contains(instructionHandle.getPosition())
-			if(false) {
+			if(exceptionBlock != null && !processedInstructionIds.contains(exceptionBlock.getStartPC().getPosition())) {
 				processedInstructionIds.add(instructionHandle.getPosition());
 				
 				blockNode.setTryStatement(true);
@@ -139,7 +139,7 @@ public class ControlFlowGraphProcessor {
 	 * 		{@link ControlFlowGraphBlockNode} processado no momento
 	 * 		
 	 */
-	private void processIfInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, List<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
+	private void processIfInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
 		
 		blockNode.addInstruction(instructionHandle.getInstruction());
 		blockNode.appendDescription(instructionHandle.toString());
@@ -167,7 +167,7 @@ public class ControlFlowGraphProcessor {
 	 * 		{@link ControlFlowGraphBlockNode} processado no momento
 	 * 		
 	 */
-	private void processSwitchInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, List<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
+	private void processSwitchInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
 		
 		TABLESWITCH switchInstruction = (TABLESWITCH) instructionHandle.getInstruction();
 		blockNode.addInstruction(instructionHandle.getInstruction());
@@ -180,7 +180,7 @@ public class ControlFlowGraphProcessor {
 		blockNode.addChildBlock(this.processInstruction(defaultCaseInstruction, root, processedInstructionIds));
 	}
 	
-	private CodeExceptionGen getExceptionBlock(InstructionHandle instructionHandle, List<Integer> processedInstructionIds) {
+	private CodeExceptionGen getExceptionBlock(InstructionHandle instructionHandle, Set<Integer> processedInstructionIds) {
 		InstructionTargeter[] targeters = instructionHandle.getTargeters();
 		if(targeters != null) {
 			for(InstructionTargeter targeter : targeters) {
