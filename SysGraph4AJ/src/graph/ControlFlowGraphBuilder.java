@@ -1,132 +1,63 @@
 package graph;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.lang.reflect.Method;
 
-import org.apache.bcel.generic.BranchHandle;
-import org.apache.bcel.generic.IfInstruction;
-import org.apache.bcel.generic.InstructionHandle;
-import org.apache.bcel.generic.ReturnInstruction;
-import org.apache.bcel.verifier.structurals.ControlFlowGraph;
-import org.apache.bcel.verifier.structurals.InstructionContext;
+import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.generic.ConstantPoolGen;
+import org.apache.bcel.generic.MethodGen;
 
 /**
- * Builder responsável pela construção de uma instância de {@link BasicBlockNode}
- * a partir de um grafo de fluxo de controle representado pela classe {@link ControlFlowGraph}
+ * Classe responsável pela construção de um grafo de fluxo de controle através da estrutura contida em
+ * {@link ControlFlowGraphBlockNode} através de um método representado por seu nome e seus parâmetros ou
+ * também pelo tipo {@link Method}.
  * 
  * @author robson
- * 
- * @see ControlFlowGraphProcessor
  *
  */
 public class ControlFlowGraphBuilder {
 
+	private static final ControlFlowGraphProcessor CONTROL_FLOW_GRAPH_PROCESSOR = new ControlFlowGraphProcessor();
+
 	/**
+	 * Constrói um grafo de fluxo de controle a partir de um {@link Method} passado por parâmetro.
 	 * 
-	 * @param controlFlowGraph
-	 * 		{@link ControlFlowGraph} representado de um método
-	 * @return {@link BasicBlockNode} criado com toda a hierarquia de instruções
-	 * que representam o grafo de fluxo de controle
+	 * @param method
+	 * 		método a ser referenciadona construção do grafo
+	 * 
+	 * @return instância de {@link ControlFlowGraphBlockNode} com o grafo de fluxo de controle
 	 */
-	public BasicBlockNode build(ControlFlowGraph controlFlowGraph) {
-		InstructionContext[] instructionContexts = controlFlowGraph.getInstructionContexts();
-		Arrays.sort(instructionContexts, new InstructionComparator());
+	public ControlFlowGraphBlockNode build(Method method) {		
+		try {
+			Class<?> declaringClass = method.getDeclaringClass();
+			JavaClass javaClass = Repository.lookupClass(declaringClass);
+			org.apache.bcel.classfile.Method methodBcel = javaClass.getMethod(method);
+			MethodGen methodGen = new MethodGen(methodBcel, declaringClass.getCanonicalName(), new ConstantPoolGen(methodBcel.getConstantPool()));
 
-		InstructionHandle instruction = instructionContexts[0].getInstruction();
-		return this.processInstruction(instruction);
-
-	}
-
-	/**
-	 * @see ControlFlowGraphBuilder#processInstruction(InstructionHandle, BasicBlockNode, List)
-	 * 
-	 * @param instruction
-	 * 		Uma instrução representada pela classe {@link InstructionHandle}
-	 * @return nó raiz com todas as instruções armazenadas em seu posigrafo
-	 */
-	private BasicBlockNode processInstruction(InstructionHandle instruction) {
-		return this.processInstruction(instruction, null, new ArrayList<Integer>());
-	}
-
-
-	/**
-	 * Processa uma instrução e retorna o respectivo grafo representado pela classe
-	 * {@link BasicBlockNode}.
-	 *  
-	 * @param instructionHandle
-	 * 		Uma instrução representada pela classe {@link InstructionHandle}
-	 * @param root
-	 * 		{@link BasicBlockNode} já criado pelo builder, pode ser nulo 	
-	 * @param processedInstructionIds
-	 * 		Lista de todas as posições já processadas até o momento.<br>
-	 * 		É interessante ter essa informação para não adicionar nós redundantes e também isso
-	 * 		evita processamentos em contínuos, gerando {@link StackOverflowError}.
-	 * 
-	 * @return nó raiz com todas as instruções armazenadas em seu grafo
-	 */ 
-	private BasicBlockNode processInstruction(InstructionHandle instructionHandle, BasicBlockNode root, List<Integer> processedInstructionIds) {
-		BasicBlockNode blockNode = new BasicBlockNode();
-
-		if(root == null) {
-			root = blockNode;
+			return CONTROL_FLOW_GRAPH_PROCESSOR.process(methodGen);	
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e.getMessage());
 		}
-		boolean ifInstructionConditional, returnInstructionConditional, notNullConditional, instructionHasNotProcessedConditional;
-		do {
-			processedInstructionIds.add(instructionHandle.getPosition());
-			blockNode.addInstruction(instructionHandle.getInstruction());
-			blockNode.appendDescription(instructionHandle.toString());
-			instructionHandle = instructionHandle instanceof BranchHandle ? ((BranchHandle) instructionHandle).getTarget() : instructionHandle.getNext();
-			notNullConditional = instructionHandle != null;
-			instructionHasNotProcessedConditional = (notNullConditional && !processedInstructionIds.contains(instructionHandle.getPosition()));
-			ifInstructionConditional = !(notNullConditional && instructionHandle.getInstruction() instanceof IfInstruction);
-			returnInstructionConditional = !(notNullConditional && instructionHandle.getInstruction() instanceof ReturnInstruction);
-		} while(notNullConditional && returnInstructionConditional && ifInstructionConditional && instructionHasNotProcessedConditional);
-
-		if(notNullConditional) {
-			if(!instructionHasNotProcessedConditional) {
-				BasicBlockNode childNode = new BasicBlockNode();
-				blockNode.addChildBlock(childNode);
-				childNode.appendDescription(Integer.toString(instructionHandle.getPosition()));
-			} else if(!ifInstructionConditional) {
-				blockNode.addInstruction(instructionHandle.getInstruction());
-				blockNode.appendDescription(instructionHandle.toString());
-				BranchHandle branchHandle = (BranchHandle) instructionHandle;
-				InstructionHandle ifTrueNextInstruction = branchHandle.getTarget();	
-
-				boolean hasInstructionProcessed = processedInstructionIds.contains(ifTrueNextInstruction.getPosition());
-				if(!hasInstructionProcessed) {
-					blockNode.addChildBlock(this.processInstruction(ifTrueNextInstruction, root, processedInstructionIds));
-				}
-				blockNode.addChildBlock(this.processInstruction(instructionHandle.getNext(), root, processedInstructionIds));				
-			
-			} else if(!returnInstructionConditional) {
-				blockNode.addInstruction(instructionHandle.getInstruction());
-				blockNode.appendDescription(instructionHandle.toString());
-			}
-		}
-		return blockNode;
 	}
 
 	/**
-	 * Comparator responsável pela ordenação de um array de {@link InstructionContext}
+	 * Constrói um grafo de fluxo de controle a partir do nome e a lista de tipos dos parâmetros deste.
 	 * 
-	 * @author robson
+	 * @param clazz
+	 * 		classe do método em que o método pertence
+	 * @param methodName
+	 * 		nome do método a ser buscado
+	 * @param parameterTypes
+	 * 		lista dos tipos dos parâmetros do método buscado
+	 * 
+	 * @return instância de {@link ControlFlowGraphBlockNode} com o grafo de fluxo de controle
 	 */
-	private class InstructionComparator implements Comparator<InstructionContext> {
-
-		@Override
-		public int compare(InstructionContext o1, InstructionContext o2) {
-			InstructionHandle firstInstruction = o1.getInstruction();
-			InstructionHandle secondInstruction = o2.getInstruction();
-
-			if(firstInstruction.getPosition() < secondInstruction.getPosition()) {
-				return -1;
-			} else if(firstInstruction.getPosition() > secondInstruction.getPosition()) {
-				return 1;
-			}
-			return 0;
-		}		
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public ControlFlowGraphBlockNode build(Class clazz, String methodName, Class<?>... parameterTypes) {
+		try {
+			return this.build(clazz.getMethod(methodName, parameterTypes));
+		} catch (NoSuchMethodException | SecurityException e) {
+			throw new RuntimeException(e.getMessage());
+		}
 	}
 }
