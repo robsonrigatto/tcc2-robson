@@ -28,7 +28,7 @@ public class ControlFlowGraphBuilderTest {
 		
 		Assert.assertEquals(5, tree.getInstructions().size());
 		
-		List<ControlFlowGraphBlockNode> childrenBlocks = tree.getChildrenBlocks();
+		List<ControlFlowGraphBlockNode> childrenBlocks = tree.getChildNodes();
 		Assert.assertEquals(2, childrenBlocks.size());
 		
 		
@@ -42,20 +42,20 @@ public class ControlFlowGraphBuilderTest {
 		List<Instruction> instructionsFromRoot = node0.getInstructions();
 		Assert.assertEquals(7, instructionsFromRoot.size());
 		
-		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildrenBlocks();
+		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildNodes();
 		Assert.assertEquals(2, childrenBlocks.size());
 		
 		ControlFlowGraphBlockNode node1 = childrenBlocks.get(0);
-		Assert.assertEquals(2, node1.getChildrenBlocks().size());
+		Assert.assertEquals(2, node1.getChildNodes().size());
 		
 		ControlFlowGraphBlockNode node2 = childrenBlocks.get(1);
-		Assert.assertEquals(0, node2.getChildrenBlocks().size());
+		Assert.assertEquals(0, node2.getChildNodes().size());
 		
-		ControlFlowGraphBlockNode node3 = node1.getChildrenBlocks().get(0);
-		Assert.assertEquals(1, node3.getChildrenBlocks().size());
+		ControlFlowGraphBlockNode node3 = node1.getChildNodes().get(0);
+		Assert.assertEquals(1, node3.getChildNodes().size());
 		
-		ControlFlowGraphBlockNode node4 = node1.getChildrenBlocks().get(1);
-		Assert.assertEquals(1, node4.getChildrenBlocks().size());
+		ControlFlowGraphBlockNode node4 = node1.getChildNodes().get(1);
+		Assert.assertEquals(1, node4.getChildNodes().size());
 	}
 
 	@Test
@@ -64,16 +64,16 @@ public class ControlFlowGraphBuilderTest {
 		
 		Assert.assertNotNull(node0);
 		
-		ControlFlowGraphBlockNode node1 = node0.getChildrenBlocks().get(0);
-		ControlFlowGraphBlockNode node2 = node0.getChildrenBlocks().get(1);
+		ControlFlowGraphBlockNode node1 = node0.getChildNodes().get(0);
+		ControlFlowGraphBlockNode node2 = node0.getChildNodes().get(1);
 		
-		Assert.assertEquals(8, node1.getChildrenBlocks().size());
+		Assert.assertEquals(8, node1.getChildNodes().size());
 		
-		for(ControlFlowGraphBlockNode childNodeFromNode1 : node1.getChildrenBlocks()) {
-			Assert.assertEquals(0, childNodeFromNode1.getChildrenBlocks().size());
+		for(ControlFlowGraphBlockNode childNodeFromNode1 : node1.getChildNodes()) {
+			Assert.assertEquals(0, childNodeFromNode1.getChildNodes().size());
 		}
 		
-		Assert.assertEquals(1, node2.getChildrenBlocks().size());		
+		Assert.assertEquals(1, node2.getChildNodes().size());		
 	}
 
 	@Test
@@ -83,15 +83,15 @@ public class ControlFlowGraphBuilderTest {
 		
 		Assert.assertNotNull(node0);
 		
-		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildrenBlocks();
+		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildNodes();
 		Assert.assertEquals(1, node0.getAspectInstructions().size());
 		Assert.assertEquals(2, childrenBlocks.size());
 		
 		ControlFlowGraphBlockNode node1 = childrenBlocks.get(0);
-		Assert.assertEquals(0, node1.getChildrenBlocks().size());
+		Assert.assertEquals(0, node1.getChildNodes().size());
 		
 		ControlFlowGraphBlockNode node2 = childrenBlocks.get(1);
-		Assert.assertEquals(1, node2.getChildrenBlocks().size());
+		Assert.assertEquals(1, node2.getChildNodes().size());
 		Assert.assertEquals(1, node2.getAspectInstructions().size());
 	}
 	
@@ -101,14 +101,16 @@ public class ControlFlowGraphBuilderTest {
 		
 		Assert.assertTrue(node0.isTryStatement());
 		
-		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildrenBlocks();
+		List<ControlFlowGraphBlockNode> childrenBlocks = node0.getChildNodes();
 		
 		ControlFlowGraphBlockNode node1 = childrenBlocks.get(0);
 		Assert.assertTrue(node1.isTryStatement());
-		//try/catch/finally do try de cima
-		Assert.assertEquals(3, node1.getChildrenBlocks().size());
-		ControlFlowGraphBlockNode node3 = node1.getChildrenBlocks().get(0);
+		//try/finally do try de cima
+		Assert.assertEquals(2, node1.getChildNodes().size());
+		ControlFlowGraphBlockNode node3 = node1.getChildNodes().get(0);
 		Assert.assertFalse(node3.isTryStatement());
+		//escopo try apontando para um catch
+		Assert.assertEquals(1, node3.getChildNodes().size());
 		
 		ControlFlowGraphBlockNode node2 = childrenBlocks.get(1);
 		

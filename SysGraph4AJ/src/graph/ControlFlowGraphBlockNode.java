@@ -12,9 +12,7 @@ public class ControlFlowGraphBlockNode {
 	
 	private List<Instruction> instructions;
 	
-	private String description;
-	
-	private List<ControlFlowGraphBlockNode> childrenBlocks;
+	private List<ControlFlowGraphBlockNode> childBlocks;
 	
 	private Set<INVOKEVIRTUAL> aspectInstructions;
 	
@@ -22,8 +20,7 @@ public class ControlFlowGraphBlockNode {
 	
 	public ControlFlowGraphBlockNode() {
 		this.instructions = new ArrayList<Instruction>();
-		this.description = new String();
-		this.childrenBlocks = new ArrayList<ControlFlowGraphBlockNode>();
+		this.childBlocks = new ArrayList<ControlFlowGraphBlockNode>();
 		this.aspectInstructions = new HashSet<>();
 		this.tryStatement = false;
 	}
@@ -45,28 +42,16 @@ public class ControlFlowGraphBlockNode {
 	public List<Instruction> getInstructions() {
 		return instructions;
 	}
-	
-	public void appendDescription(String description) {
-		this.description += description.trim() + "\n";
-	}
 
 	/**
 	 * adiciona um nó filho no grafo.
 	 */
 	public void addChildBlock(ControlFlowGraphBlockNode childNode) {
-		this.childrenBlocks.add(childNode);
+		this.childBlocks.add(childNode);
 	}
 
-	public List<ControlFlowGraphBlockNode> getChildrenBlocks() {
-		return childrenBlocks;
-	}
-
-	public String getDescription() {
-		return description;
-	}
-
-	public void setDescription(String description) {
-		this.description = description;
+	public List<ControlFlowGraphBlockNode> getChildNodes() {
+		return childBlocks;
 	}
 	
 	public boolean isTryStatement() {
@@ -78,7 +63,13 @@ public class ControlFlowGraphBlockNode {
 	}
 
 	@Override
-	public String toString() {
-		return this.description.trim();
+	public String toString() {		
+		StringBuilder sb = new StringBuilder();
+		
+		for(Instruction instruction : this.instructions) {
+			sb.append(instruction.toString().trim()).append("\n");
+		}
+		
+		return sb.toString().trim();
 	}
 }
