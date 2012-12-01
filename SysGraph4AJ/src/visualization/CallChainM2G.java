@@ -10,7 +10,7 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.graph.Forest;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 
-import model.Element;
+import model.SysElement;
 import model.SysAdvice;
 import model.SysMethod;
 import model.SysRoot;
@@ -18,33 +18,33 @@ import model.SysRoot;
 /**the class that constructs a call chain graph*/
 public class CallChainM2G {
 	
-	EspecialEdgesTable<Element, Float> table = new EspecialEdgesTable<Element, Float>();
+	EspecialEdgesTable<SysElement, Float> table = new EspecialEdgesTable<SysElement, Float>();
 	private int deltaX = 100;
 	private int deltaY = 80;
 
 	/**constructs an AggregateLayout with the given SysMethod*/
-	public AggregateLayout<Element, Float> doAggregateLayout( SysRoot root, SysMethod m) {
+	public AggregateLayout<SysElement, Float> doAggregateLayout( SysRoot root, SysMethod m) {
 		MethodAnalysis.analyseMethod(m, root);
-		DelegateTree<Element, Float> dt = new DelegateTree<Element, Float>();
+		DelegateTree<SysElement, Float> dt = new DelegateTree<SysElement, Float>();
 		dt.addVertex(m);
 		dt = addChildToGraph(dt,m);
-		Forest<Element, Float> df = ModelToGraph.tree_to_forest(dt);
-		AggregateLayout<Element, Float> al = new AggregateLayout<Element, Float>(new TreeLayout<Element, Float>(df, deltaX, deltaY));
+		Forest<SysElement, Float> df = ModelToGraph.tree_to_forest(dt);
+		AggregateLayout<SysElement, Float> al = new AggregateLayout<SysElement, Float>(new TreeLayout<SysElement, Float>(df, deltaX, deltaY));
 		df=addEspecialEdges(df, table);
 		return al;
 	}
 	
 	
 	/**constructs a VisualizationViewer from an AggregateLayout*/
-	public VisualizationViewer<Element, Float> makeVV(AggregateLayout<Element, Float> al){
-		VisualizationViewer<Element, Float> vv =new VisualizationViewer<Element, Float>(al);		
+	public VisualizationViewer<SysElement, Float> makeVV(AggregateLayout<SysElement, Float> al){
+		VisualizationViewer<SysElement, Float> vv =new VisualizationViewer<SysElement, Float>(al);		
 		return vv;
 	}
 	
 	/**add the vertex that may broke a tree structure*/
-	private static Forest<Element, Float> addEspecialEdges(Forest<Element, Float> df, EspecialEdgesTable<Element, Float> table) {
-		Iterator<Element> from = table.getFrom().iterator();
-		Iterator<Element> to = table.getTo().iterator();
+	private static Forest<SysElement, Float> addEspecialEdges(Forest<SysElement, Float> df, EspecialEdgesTable<SysElement, Float> table) {
+		Iterator<SysElement> from = table.getFrom().iterator();
+		Iterator<SysElement> to = table.getTo().iterator();
 		Iterator<Float> edge = table.getEdge().iterator();
 		while(from.hasNext() && to.hasNext() && edge.hasNext()){
 			//df.addEdge(df.getEdgeCount()+1.5f, from.next(), to.next());
@@ -54,7 +54,7 @@ public class CallChainM2G {
 	}
 
 	/**add the caller child to the graph*/
-	public DelegateTree<Element, Float> addChildToGraph(DelegateTree<Element, Float> g, SysMethod caller){
+	public DelegateTree<SysElement, Float> addChildToGraph(DelegateTree<SysElement, Float> g, SysMethod caller){
 		for(SysMethod m : caller.getCalls()){
 			if(g.containsVertex(m)){
 				this.table.add(g.getEdgeCount()*1.0f+1.0f+this.table.size(), caller, m);

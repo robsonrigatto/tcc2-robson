@@ -6,7 +6,7 @@ import java.util.HashSet;
 import org.aspectj.lang.annotation.Pointcut;
 
 
-public class SysPointcut implements Element {
+public class SysPointcut implements SysElement {
 	private String name;
 	private SysAdvice owner;
 	private String expression;
@@ -45,12 +45,12 @@ public class SysPointcut implements Element {
 	}
 
 	
-	public Element getOwner() {
+	public SysElement getOwner() {
 		return this.owner;
 	}
 
 	
-	public void setOwner(Element e) {
+	public void setOwner(SysElement e) {
 		if(e instanceof SysAdvice){
 			this.owner=(SysAdvice)e;
 		}
@@ -62,7 +62,7 @@ public class SysPointcut implements Element {
 	}
 
 	
-	public boolean equals(Element e) {
+	public boolean equals(SysElement e) {
 		if(e instanceof SysPointcut){
 			SysPointcut p = (SysPointcut)e; 
 			return (p.getName().equals(this.getName()) && p.getExpression().equals(this.getExpression()));
@@ -82,29 +82,29 @@ public class SysPointcut implements Element {
 
 
 	
-	public Element partialClone() {
+	public SysElement partialClone() {
 		SysPointcut p = new SysPointcut(this.name,this.expression);
 		p.setOwner(this.getOwner());
 		return p;
 	}
 
 	
-	public HashSet<Element> getChildElements() {
-		return new HashSet<Element>();
+	public HashSet<SysElement> getChildElements() {
+		return new HashSet<SysElement>();
 	}
 
 	
-	public Element get(String thisName, String sig, boolean isLast) {
+	public SysElement get(String thisName, String sig, boolean isLast) {
 		return null;
 	}
 
 	
-	public Element getMax(String called, String sig) {
+	public SysElement getMax(String called, String sig) {
 		return null;
 	}
 
 	
-	public void add(Element e) {
+	public void add(SysElement e) {
 		return;
 
 	}

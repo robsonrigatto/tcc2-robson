@@ -19,7 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
-import model.Element;
+import model.SysElement;
 import model.SysPackage;
 import model.SysRoot;
 import analysis.SysAnalysis;
@@ -33,7 +33,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 
 	private static MainWindow self = null;
 	private static boolean window = false;
-	private static VisualizationViewer<Element, Float> visualizationViewer = null;
+	private static VisualizationViewer<SysElement, Float> visualizationViewer = null;
 	private static boolean isVisualizationViewerEnabled = false;
 	private String path = "bin";
 	private JTextArea textArea = new JTextArea();
@@ -61,7 +61,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 		this.leftPanel.add(btn);
 		this.leftPanel.setVisible(true);
 		this.leftPanel.setSize(85, 170);
-		this.leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.PAGE_AXIS));
+		this.leftPanel.setLayout(new BoxLayout(this.leftPanel, BoxLayout.PAGE_AXIS));
 		this.setUpContainerProperties();
 	}
 
@@ -187,8 +187,8 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 			this.textArea.append("Beginning analysis\n");
 			SysRoot root = SysAnalysis.initialModel(this.path); // do the initial model
 			this.sysRoot = root;
-			VisualizationViewer<Element, Float> visualizationViewer 
-				= SysGraph4AJUtils.createVisualizationViewerBySysRoot(root, this.deltaX, this.deltaY);
+			VisualizationViewer<SysElement, Float> visualizationViewer 
+				= SysUtils.createVisualizationViewerBySysRoot(root, this.deltaX, this.deltaY);
 			this.setCenterPanel(visualizationViewer);
 			visualizationViewer.updateUI();
 			this.textArea.append(root.getPackages().toString() + "\n");
@@ -238,18 +238,18 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 		container.add(pane, BorderLayout.CENTER);
 		this.setCenter(pane);
 		if(pane instanceof VisualizationViewer){
-			VisualizationViewer<Element, Float> visualizationViewer = ((VisualizationViewer<Element,Float>) pane);
+			VisualizationViewer<SysElement, Float> visualizationViewer = ((VisualizationViewer<SysElement,Float>) pane);
 			this.makeGoodVisual(visualizationViewer);
 			visualizationViewer.updateUI();
 		}
 	}
 
-	public void makeGoodVisual(VisualizationViewer<Element, Float> visualizationViewer){
-		SysGraph4AJUtils.makeGoodVisual(visualizationViewer, this);
+	public void makeGoodVisual(VisualizationViewer<SysElement, Float> visualizationViewer){
+		SysUtils.makeGoodVisual(visualizationViewer, this);
 	}
 
-	public void makeMenuBar(VisualizationViewer<Element, Float> visualizationViewer){
-		SysGraph4AJUtils.makeMenuBar(visualizationViewer, this, this.sysRoot);
+	public void makeMenuBar(VisualizationViewer<SysElement, Float> visualizationViewer){
+		SysUtils.makeMenuBar(visualizationViewer, this, this.sysRoot);
 	}
 
 	public boolean rightClickEnabled() {

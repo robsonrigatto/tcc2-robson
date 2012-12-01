@@ -10,7 +10,7 @@ import java.awt.Container;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
-import model.Element;
+import model.SysElement;
 import model.SysMethod;
 import model.SysRoot;
 import visualization.CallChainM2G;
@@ -24,6 +24,11 @@ import edu.uci.ics.jung.visualization.VisualizationViewer;
  */
 public class CallChainWindow extends JFrame implements GUIWindowInterface {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private SysRoot root;
 	private SysMethod m;
 	private Container center = this.getContentPane();
@@ -36,15 +41,15 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 		this.m=m;
 		this.root=root;
 		CallChainM2G cc = new CallChainM2G();
-		VisualizationViewer<Element,Float> vv;
-		AggregateLayout<Element, Float> al = cc.doAggregateLayout(root,m); 
+		VisualizationViewer<SysElement,Float> vv;
+		AggregateLayout<SysElement, Float> al = cc.doAggregateLayout(root,m); 
 		vv = new CallChainM2G().makeVV(al);
 		this.add(vv);
-		SysGraph4AJUtils.makeGoodVisual(vv, this);
+		SysUtils.makeGoodVisual(vv, this);
 		makeMenuBar(vv);
 		vv.setSize(this.getSize());
 		this.pack();
-		SysGraph4AJUtils.setAtCenter(m, al, this, vv);
+		SysUtils.setAtCenter(m, al, this, vv);
 
 	}
 
@@ -58,18 +63,18 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 		super("CallChain >>> "+m);
 		this.m=m;
 		this.root=root;
-		VisualizationViewer<Element,Float> vv;
+		VisualizationViewer<SysElement,Float> vv;
 		if(b){
 			recur(root,m);
 		}
 		CallChainM2G cc = new CallChainM2G();
-		AggregateLayout<Element, Float> al = cc.doAggregateLayout(root,m); 
+		AggregateLayout<SysElement, Float> al = cc.doAggregateLayout(root,m); 
 		vv = new CallChainM2G().makeVV(al);
 		this.add(vv);
-		SysGraph4AJUtils.makeGoodVisual(vv, this);
+		SysUtils.makeGoodVisual(vv, this);
 		makeMenuBar(vv);
 		this.pack();
-		SysGraph4AJUtils.setAtCenter(m, al, this, vv);
+		SysUtils.setAtCenter(m, al, this, vv);
 	}
 
 
@@ -111,14 +116,14 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 	}
 
 	
-	public void makeGoodVisual(VisualizationViewer<Element, Float> vv) {
-		SysGraph4AJUtils.makeGoodVisual(vv, this);
+	public void makeGoodVisual(VisualizationViewer<SysElement, Float> vv) {
+		SysUtils.makeGoodVisual(vv, this);
 	}
 
 	
 	/**makes a menu bar given a visualization viewer*/
-	public void makeMenuBar(VisualizationViewer<Element, Float> vv) {
-		SysGraph4AJUtils.makeMenuBar(vv, this, this.root);
+	public void makeMenuBar(VisualizationViewer<SysElement, Float> vv) {
+		SysUtils.makeMenuBar(vv, this, this.root);
 
 	}
 

@@ -1,5 +1,6 @@
 package graph;
 
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -16,8 +17,8 @@ import org.apache.bcel.generic.TABLESWITCH;
 import org.apache.bcel.verifier.structurals.ControlFlowGraph;
 
 /**
- * Classe responsável pelo processamento de uma instância de {@link ControlFlowGraphBlockNode}
- * a partir de um grafo de fluxo de controle representado pela classe {@link ControlFlowGraph}
+ * Classe responsável pelo processamento de uma instância de {@link ControlFlowGraphNode}
+ * a partir de um método representado pela classe {@link MethodGen}
  * 
  * @author robson
  * 
@@ -31,36 +32,36 @@ public class ControlFlowGraphProcessor {
 	 * @param methodGen
 	 * 		{@link ControlFlowGraph} representado de um método
 	 * @return 
-	 * 		{@link ControlFlowGraphBlockNode} criado com toda a hierarquia de instruções
+	 * 		{@link ControlFlowGraphNode} criado com toda a hierarquia de instruções
 	 * 		que representam o grafo de fluxo de controle
 	 */
-	public ControlFlowGraphBlockNode process(MethodGen methodGen) {
+	public ControlFlowGraphNode process(MethodGen methodGen) {
 		InstructionHandle instruction = methodGen.getInstructionList().getStart();
 		return this.processInstruction(instruction);
 
 	}
 
 	/**
-	 * @see ControlFlowGraphProcessor#processInstruction(InstructionHandle, ControlFlowGraphBlockNode, List)
+	 * @see ControlFlowGraphProcessor#processInstruction(InstructionHandle, ControlFlowGraphNode, List)
 	 * 
 	 * @param instruction
 	 * 		Uma instrução representada pela classe {@link InstructionHandle}
 	 * @return 
 	 * 		Nó raiz com todas as instruções armazenadas em seu grafo
 	 */
-	private ControlFlowGraphBlockNode processInstruction(InstructionHandle instruction) {
+	private ControlFlowGraphNode processInstruction(InstructionHandle instruction) {
 		return this.processInstruction(instruction, null, new HashSet<Integer>());
 	}
 
 
 	/**
 	 * Processa uma instrução e retorna o respectivo grafo representado pela classe
-	 * {@link ControlFlowGraphBlockNode}.
+	 * {@link ControlFlowGraphNode}.
 	 *  
 	 * @param instructionHandle
 	 * 		Uma instrução representada pela classe {@link InstructionHandle}
 	 * @param root
-	 * 		{@link ControlFlowGraphBlockNode} já criado pelo builder, pode ser nulo 	
+	 * 		{@link ControlFlowGraphNode} já criado pelo builder, pode ser nulo 	
 	 * @param processedInstructionIds
 	 * 		Lista de todas as posições já processadas até o momento.<br>
 	 * 		É interessante ter essa informação para não adicionar nós redundantes e também isso
@@ -69,12 +70,12 @@ public class ControlFlowGraphProcessor {
 	 * @return 
 	 * 		Nó raiz com todas as instruções armazenadas em seu grafo
 	 */ 
-	private ControlFlowGraphBlockNode processInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds) {
+	private ControlFlowGraphNode processInstruction(InstructionHandle instructionHandle, ControlFlowGraphNode root, Set<Integer> processedInstructionIds) {
 		
 		boolean ifInstructionConditional, switchInstructionConditional, returnInstructionConditional, 
 		notNullConditional, instructionHasNotProcessedConditional;
 		
-		ControlFlowGraphBlockNode blockNode = new ControlFlowGraphBlockNode();
+		ControlFlowGraphNode blockNode = new ControlFlowGraphNode();
 
 		if(root == null || root.getInstructions().size() == 0) {
 			root = blockNode;
@@ -89,23 +90,23 @@ public class ControlFlowGraphProcessor {
 				
 				InstructionHandle tryInstruction = exceptionBlock.getStartPC();
 				
-				ControlFlowGraphBlockNode tryBlock = this.processInstruction(tryInstruction, root, processedInstructionIds);				
-				blockNode.addChildBlock(tryBlock);
+				ControlFlowGraphNode tryBlock = this.processInstruction(tryInstruction, root, processedInstructionIds);				
+				blockNode.addChildNode(tryBlock);
 				
 				InstructionHandle catchInstruction = exceptionBlock.getHandlerPC();
-				ControlFlowGraphBlockNode catchBlock = this.processInstruction(catchInstruction, root, processedInstructionIds);
+				ControlFlowGraphNode catchBlock = this.processInstruction(catchInstruction, root, processedInstructionIds);
 				
 				this.addNodeToAllChildNodesFromRoot(tryBlock, catchBlock);
 				
 				InstructionHandle finallyInstruction = exceptionBlock.getEndPC();
-				ControlFlowGraphBlockNode finallyBlock = this.processInstruction(finallyInstruction, root, processedInstructionIds);
-				blockNode.addChildBlock(finallyBlock);
+				ControlFlowGraphNode finallyBlock = this.processInstruction(finallyInstruction, root, processedInstructionIds);
+				blockNode.addChildNode(finallyBlock);
 				
 				instructionHandle = finallyInstruction;
 				
 			} else {
 				processedInstructionIds.add(instructionHandle.getPosition());				
-				blockNode.addInstruction(instructionHandle.getInstruction());
+				blockNode.addInstruction(instructionHandle);
 				instructionHandle = instructionHandle instanceof BranchHandle ? ((BranchHandle) instructionHandle).getTarget() : instructionHandle.getNext();
 			}
 			
@@ -120,15 +121,16 @@ public class ControlFlowGraphProcessor {
 		if(notNullConditional) {
 			
 			if(!instructionHasNotProcessedConditional && !blockNode.isTryStatement()) {
-				ControlFlowGraphBlockNode childNode = new ControlFlowGraphBlockNode();
-				blockNode.addChildBlock(childNode);
-				blockNode.addInstruction(instructionHandle.getInstruction());
-			
+				ControlFlowGraphNode childNode = new ControlFlowGraphNode();
+				blockNode.addChildNode(childNode);
+				childNode.addInstruction(instructionHandle);
+				childNode.setReference(true);
+				
 			} else if(!ifInstructionConditional) {
 				this.processIfInstruction(instructionHandle, root, processedInstructionIds, blockNode);				
 			
 			} else if(!returnInstructionConditional) {
-				blockNode.addInstruction(instructionHandle.getInstruction());
+				blockNode.addInstruction(instructionHandle);
 				
 			} else if(!switchInstructionConditional) {
 				this.processSwitchInstruction(instructionHandle, root, processedInstructionIds, blockNode);
@@ -142,26 +144,26 @@ public class ControlFlowGraphProcessor {
 	 * @param instructionHandle
 	 * 		Uma instrução representada pela classe {@link InstructionHandle}
 	 * @param root
-	 * 		{@link ControlFlowGraphBlockNode} já criado pelo builder
+	 * 		{@link ControlFlowGraphNode} já criado pelo builder
 	 * @param processedInstructionIds
 	 * 		Lista de todas as posições já processadas até o momento.<br>
 	 * 		É interessante ter essa informação para não adicionar nós redundantes e também isso
 	 * 		evita processamentos em contínuos, gerando {@link StackOverflowError}.
 	 * @param blockNode
-	 * 		{@link ControlFlowGraphBlockNode} processado no momento
+	 * 		{@link ControlFlowGraphNode} processado no momento
 	 * 		
 	 */
-	private void processIfInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
+	private void processIfInstruction(InstructionHandle instructionHandle, ControlFlowGraphNode root, Set<Integer> processedInstructionIds, ControlFlowGraphNode blockNode) {
 		
-		blockNode.addInstruction(instructionHandle.getInstruction());
+		blockNode.addInstruction(instructionHandle);
 		BranchHandle branchHandle = (BranchHandle) instructionHandle;
 		InstructionHandle ifTrueNextInstruction = branchHandle.getTarget();	
 
 		boolean hasInstructionProcessed = processedInstructionIds.contains(ifTrueNextInstruction.getPosition());
 		if(!hasInstructionProcessed) {
-			blockNode.addChildBlock(this.processInstruction(ifTrueNextInstruction, root, processedInstructionIds));
+			blockNode.addChildNode(this.processInstruction(ifTrueNextInstruction, root, processedInstructionIds));
 		}
-		blockNode.addChildBlock(this.processInstruction(instructionHandle.getNext(), root, processedInstructionIds));
+		blockNode.addChildNode(this.processInstruction(instructionHandle.getNext(), root, processedInstructionIds));
 	}
 	
 	/**
@@ -169,28 +171,29 @@ public class ControlFlowGraphProcessor {
 	 * @param instructionHandle
 	 * 		Uma instrução representada pela classe {@link InstructionHandle}
 	 * @param root
-	 * 		{@link ControlFlowGraphBlockNode} já criado pelo builder
+	 * 		{@link ControlFlowGraphNode} já criado pelo builder
 	 * @param processedInstructionIds
 	 * 		Lista de todas as posições já processadas até o momento.<br>
 	 * 		É interessante ter essa informação para não adicionar nós redundantes e também isso
 	 * 		evita processamentos em contínuos, gerando {@link StackOverflowError}.
 	 * @param blockNode
-	 * 		{@link ControlFlowGraphBlockNode} processado no momento
+	 * 		{@link ControlFlowGraphNode} processado no momento
 	 * 		
 	 */
-	private void processSwitchInstruction(InstructionHandle instructionHandle, ControlFlowGraphBlockNode root, Set<Integer> processedInstructionIds, ControlFlowGraphBlockNode blockNode) {
+	private void processSwitchInstruction(InstructionHandle instructionHandle, ControlFlowGraphNode root, Set<Integer> processedInstructionIds, ControlFlowGraphNode blockNode) {
 		
 		TABLESWITCH switchInstruction = (TABLESWITCH) instructionHandle.getInstruction();
-		blockNode.addInstruction(instructionHandle.getInstruction());
+		blockNode.addInstruction(instructionHandle);
 		InstructionHandle[] caseInstructions = switchInstruction.getTargets();
 		for(InstructionHandle caseInstruction : caseInstructions) {
-			blockNode.addChildBlock(this.processInstruction(caseInstruction, root, processedInstructionIds));
+			blockNode.addChildNode(this.processInstruction(caseInstruction, root, processedInstructionIds));
 		}
 		InstructionHandle defaultCaseInstruction = switchInstruction.getTarget();
-		blockNode.addChildBlock(this.processInstruction(defaultCaseInstruction, root, processedInstructionIds));
+		blockNode.addChildNode(this.processInstruction(defaultCaseInstruction, root, processedInstructionIds));
 	}
 	
 	/**
+	 * Obtém uma exceção a ser tratada em um block try/catch
 	 * 
 	 * @param instructionHandle 
 	 * 		Uma instrução representada pela classe {@link InstructionHandle}
@@ -214,15 +217,23 @@ public class ControlFlowGraphProcessor {
 		return null;
 	}
 	
-	private void addNodeToAllChildNodesFromRoot(ControlFlowGraphBlockNode root, ControlFlowGraphBlockNode catchBlock) {
-		if(root == null || catchBlock == null) {
+	/**
+	 * Adiciona um bloco como filho ao nó raiz {@code root} e seus respectivos filhos.
+	 * 
+	 * @param root
+	 * 		bloco raiz que irá referenciar o block catch
+	 * @param targetBlock
+	 * 		block catch que será referenciado por todos os blocks pertencentes ao bloco raiz
+	 */
+	private void addNodeToAllChildNodesFromRoot(ControlFlowGraphNode root, ControlFlowGraphNode targetBlock) {
+		if(root == null || targetBlock == null) {
 			return;
 		}
 		
-		List<ControlFlowGraphBlockNode> childNodes = root.getChildNodes();
-		for(ControlFlowGraphBlockNode node : childNodes) {
-			this.addNodeToAllChildNodesFromRoot(node, catchBlock);
-			node.addChildBlock(catchBlock);
+		List<ControlFlowGraphNode> childNodes = root.getChildNodes();
+		for(ControlFlowGraphNode node : childNodes) {
+			this.addNodeToAllChildNodesFromRoot(node, targetBlock);
+			node.addChildNode(targetBlock);
 		}
 	}
 }

@@ -7,7 +7,7 @@ package analysis;
 import java.io.File;
 import java.lang.reflect.Constructor;
 
-import model.Element;
+import model.SysElement;
 import model.SysAdvice;
 import model.SysAspect;
 import model.SysClass;
@@ -58,7 +58,7 @@ public class ClassAnalysis2 {
 			clazz= FileLoader.forName(cfully);
 		} catch (ClassNotFoundException e1) { //it may be an inner class
 			//e1.printStackTrace();
-			Element owner = c.getOwner();
+			SysElement owner = c.getOwner();
 			if(owner instanceof SysClass){
 				String cowner = c.getOwner().getFullyQualifiedName(); //cowner = class owner
 				if(cowner.startsWith("(default package).")){

@@ -1,14 +1,11 @@
 package analysis;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import javax.swing.JOptionPane;
-
-import model.Element;
+import model.SysElement;
 import model.SysAdvice;
 import model.SysAspect;
 import model.SysClass;
@@ -16,8 +13,7 @@ import model.SysMethod;
 import model.SysPackage;
 import model.SysRoot;
 
-import org.apache.bcel.classfile.ClassFormatException;
-import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.Code;
 import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.JavaClass;
@@ -52,9 +48,9 @@ public class MethodAnalysis {
 			if(called==null || called.equals("") || called.equals(" ")) continue;
 			//now we have the called method fully qualified name and its signature.
 			//a couple of good references to work with
-			Element lastInModel=root.getMax(called, sig);
+			SysElement lastInModel=root.getMax(called, sig);
 			System.out.println("[MethodAnalysis]: max: \""+lastInModel+"\"");
-			Element nextNotInModel=null;
+			SysElement nextNotInModel=null;
 			SysMethod calledMethod = null;
 
 
@@ -163,59 +159,12 @@ public class MethodAnalysis {
 	 * @return BCEL java class from {@link SysMethod}
 	 */
 	private static JavaClass getClassFromMethod(SysMethod sm, SysRoot root) {
-		ClassParser p;
-		JavaClass jc=null;
-		String aux1 = "";
-		Element owner = sm.getOwner();
-		if(owner.getOwner() instanceof SysClass){ //we are dealing with inner classes
-			Element owner2 = owner.getOwner();
-			aux1 = owner.getName()+aux1; //package.class$class$class
-			while(! (owner2 instanceof SysRoot) && owner2 != null){
-				if(owner2 instanceof SysClass){
-					aux1 = owner2.getName()+"$"+aux1;
-				} else {
-					aux1 = owner2.getName()+"."+aux1;
-				}
-				owner2 = owner2.getOwner();
-			}
-			if(aux1.contains("."))
-				aux1 = aux1.replace(".", File.separator);
-			if(aux1.startsWith(File.separator+File.separator))
-				aux1="."+aux1.substring(1);
-			if(aux1.contains(File.separator+"(default package)")) 
-				aux1 = aux1.replace(File.separator+"(default package)", "");
-		}
-
-		String pathToClass = root.getPath()+File.separatorChar+owner.getFullyQualifiedName();
-		if(pathToClass.contains("."))
-			pathToClass = pathToClass.replace(".", File.separator);
-		if(pathToClass.startsWith(File.separator+File.separator))
-			pathToClass="."+pathToClass.substring(1);
-		if(pathToClass.contains(File.separator+"(default package)")) 
-			pathToClass = pathToClass.replace(File.separator+"(default package)", "");
-
 		try {
-			p = new ClassParser(pathToClass+".class"); //load the .class file
-			jc = p.parse(); //returns the representation in a JavaClass object
-			//May throw a null pointer exception, representing that p could not parse
-		} catch (IOException e) {
-			e.printStackTrace();	
-		} catch (ClassFormatException cfe){
-			cfe.printStackTrace();
-		} catch (NullPointerException nill){
-			try {
-				JOptionPane.showMessageDialog(null, root.getPath()+File.separator+aux1+".class");
-				p = new ClassParser(root.getPath()+File.separator+aux1+".class"); //load the .class file
-				jc = p.parse(); //returns the representation in a JavaClass object
-				//May throw a null pointer exception, representing that p could not parse
-			} catch (IOException e) {
-				e.printStackTrace();	
-			} catch (ClassFormatException cfe){
-				cfe.printStackTrace();
-			}
-
+			return Repository.lookupClass(sm.getMethod().getDeclaringClass());
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
 		}
-		return jc;
+		return null;
 	}
 
 
@@ -235,7 +184,7 @@ public class MethodAnalysis {
 	/**
 	 * Redirects to the right tryOption
 	 */
-	public static Element tryOption(Element m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
+	public static SysElement tryOption(SysElement m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
 		assert(m!=null);
 		if(m instanceof SysAspect) return tryOption((SysAspect)m,string, signature, sysRoot);
 		if(m instanceof SysPackage) return tryOption((SysPackage)m,string, signature, sysRoot);
@@ -244,7 +193,7 @@ public class MethodAnalysis {
 		return null;
 	}
 
-	public static Element tryOption(SysAspect c, String pathToFind, String signature, SysRoot root) throws PathNotFoundException {
+	public static SysElement tryOption(SysAspect c, String pathToFind, String signature, SysRoot root) throws PathNotFoundException {
 		if(pathToFind.equals("") || c.isAnalysed()) {
 			System.err.println("[MethodAnalysis]: throwing exception because" +
 					(pathToFind.equals("")?" pathToFind==nothing": c.getName()+" is analysed.")+ "\n\tClass name:"+c.getName()+"\n\tPathToFind="+pathToFind);
@@ -265,7 +214,7 @@ public class MethodAnalysis {
 		cobaia = ClassAnalysis2.analyseClass(cobaia, root);
 
 		if(dotPosition==-1){
-			Element e1 = cobaia.getMax(pathToFind, signature);
+			SysElement e1 = cobaia.getMax(pathToFind, signature);
 			if(e1 instanceof SysMethod || e1 instanceof SysAdvice){
 				e1.setOwner(c);
 				return e1;
@@ -279,8 +228,8 @@ public class MethodAnalysis {
 			String nextClass = pathToFind.substring(0, dotPosition);
 			for(SysClass inner : c.getInnerClasses()){
 				if(inner.getName().equals(nextClass)){
-					Element e = MethodAnalysis.tryOption(inner, pathToFind.substring(dotPosition+1),signature, root);
-					Element aux = inner.getOwner().getMax(inner.getName(), signature);
+					SysElement e = MethodAnalysis.tryOption(inner, pathToFind.substring(dotPosition+1),signature, root);
+					SysElement aux = inner.getOwner().getMax(inner.getName(), signature);
 					if (e instanceof SysAspect){
 						inner = (SysAspect)aux;
 					} else if (e instanceof SysClass){
@@ -308,7 +257,7 @@ public class MethodAnalysis {
 	 * Try to find the path into the method, in this case, just checks the signature
 	 * Returns null if the given method is the method you are looking for.
 	 */
-	public static Element tryOption(SysMethod m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
+	public static SysElement tryOption(SysMethod m, String string, String signature, SysRoot sysRoot) throws PathNotFoundException {
 		//String sig = m.getSignature().substring(1,m.getSignature().lastIndexOf(")"));
 		if(string.equals("") /*&& m.getSignature().equals(signature)*/) return m;
 		throw new PathNotFoundException();
@@ -318,7 +267,7 @@ public class MethodAnalysis {
 	/**
 	 * Tries to find the path into the given class, case success it returns the
 	 */
-	public static Element tryOption(SysClass c, String pathToFind,String signature, SysRoot r) throws PathNotFoundException {
+	public static SysElement tryOption(SysClass c, String pathToFind,String signature, SysRoot r) throws PathNotFoundException {
 		if(pathToFind.equals("") || c.isAnalysed()) {
 			System.err.println("[MethodAnalysis]: throwing exception because" +
 					(pathToFind.equals("")?" pathToFind==nothing": c.getName()+" is analysed.")+ "\n\tClass name:"+c.getName()+"\n\tPathToFind="+pathToFind);
@@ -338,7 +287,7 @@ public class MethodAnalysis {
 		cobaia = ClassAnalysis2.analyseClass(cobaia, r);
 
 		if(dotPosition==-1){
-			Element e1 = cobaia.getMax(pathToFind, signature);
+			SysElement e1 = cobaia.getMax(pathToFind, signature);
 			if(e1 instanceof SysMethod){
 				e1.setOwner(c);
 				return e1;
@@ -353,7 +302,7 @@ public class MethodAnalysis {
 			String nextClass = pathToFind.substring(0, dotPosition);
 			for(SysClass inner : c.getInnerClasses()){
 				if(inner.getName().equals(nextClass)){
-					Element e = MethodAnalysis.tryOption(inner, pathToFind.substring(dotPosition+1),signature, r);
+					SysElement e = MethodAnalysis.tryOption(inner, pathToFind.substring(dotPosition+1),signature, r);
 					inner = (SysClass)inner.getOwner().getMax(inner.getName(), "");
 					if(e instanceof SysClass){
 						inner.add((SysClass)e);
@@ -377,7 +326,7 @@ public class MethodAnalysis {
 	 * For example, if beginning from this package there are more packages to descend, returns the next package.
 	 * And if beginning from this package there are only classes until the required method, returns the next class.
 	 */
-	public static Element tryOption(SysPackage p1, String pathToFind,String signature, SysRoot r) throws PathNotFoundException{
+	public static SysElement tryOption(SysPackage p1, String pathToFind,String signature, SysRoot r) throws PathNotFoundException{
 		String path = r.getPath()+File.separator+
 				p1.getFullyQualifiedName().replace(".",File.separator);
 		int dotPosition = pathToFind.indexOf(".");
@@ -394,12 +343,12 @@ public class MethodAnalysis {
 
 		SysPackage cobaia =(SysPackage) p1.partialClone();
 		SysAnalysis.analysePackage(cobaia, path, false);
-		Element e=null;
+		SysElement e=null;
 
 
 
 		if(dotPosition!=-1){
-			Element e2 = cobaia.getMax(f+"."+pathToFind, signature);
+			SysElement e2 = cobaia.getMax(f+"."+pathToFind, signature);
 			if(e2 instanceof SysPackage){
 				SysPackage p = (SysPackage) e2;
 				try{
@@ -423,7 +372,7 @@ public class MethodAnalysis {
 
 		SysMethod e1=null;
 		SysClass c = null;
-		Element e2 = cobaia.getMax(f+"."+pathToFind, signature);
+		SysElement e2 = cobaia.getMax(f+"."+pathToFind, signature);
 		if(e2 instanceof SysClass){
 			c = (SysClass) e2;
 			c = (SysClass)c.partialClone();
@@ -451,7 +400,7 @@ public class MethodAnalysis {
 	 * sjc.unifesp.ict.dct as a package the return is bcc.vespertino as string.
 	 * 
 	 */
-	public static String getFixedString(String str, Element e){
+	public static String getFixedString(String str, SysElement e){
 		String corrected=str, e_name;
 		e_name=e.getFullyQualifiedName();
 		if(e_name.startsWith("(default package")){
@@ -587,7 +536,7 @@ public class MethodAnalysis {
 	 * @param lastInModel last element in model
 	 * @param nextNotInModel next element that is not in model
 	 * @return true if succeeded and false if not*/
-	public static boolean addElementToElement_notDependency(Element lastInModel, Element nextNotInModel){
+	public static boolean addElementToElement_notDependency(SysElement lastInModel, SysElement nextNotInModel){
 		if(lastInModel==null || nextNotInModel==null) return false;
 		if(nextNotInModel instanceof SysPackage){
 			if(lastInModel instanceof SysPackage){
@@ -629,7 +578,7 @@ public class MethodAnalysis {
 
 
 
-	public static Element new_tryOption(SysPackage p1, String pathToFind,String signature, SysRoot r) throws PathNotFoundException{
+	public static SysElement new_tryOption(SysPackage p1, String pathToFind,String signature, SysRoot r) throws PathNotFoundException{
 		String path = r.getPath()+File.separator+
 				p1.getFullyQualifiedName().replace(".",File.separator);
 		int dotPosition = pathToFind.indexOf(".");
@@ -646,10 +595,10 @@ public class MethodAnalysis {
 
 		SysPackage cobaia =(SysPackage) p1.partialClone();
 		SysAnalysis.analysePackage(cobaia, path, false);
-		Element e=null;
+		SysElement e=null;
 		e = cobaia.getMax(f+"."+nextPath, "");
 		try{
-			Element e1 = tryOption(e, nextPath, signature, r);
+			SysElement e1 = tryOption(e, nextPath, signature, r);
 			if(e instanceof SysClass){
 				((SysClass)e).add(e1);
 			} else {

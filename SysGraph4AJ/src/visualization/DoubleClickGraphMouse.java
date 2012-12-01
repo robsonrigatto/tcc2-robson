@@ -1,7 +1,6 @@
 package visualization;
 
 import java.awt.Component;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
@@ -14,16 +13,14 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
-import analysis.ClassAnalysis2;
-import analysis.MethodAnalysis;
-import analysis.SysAnalysis;
-
-import model.Element;
 import model.SysClass;
+import model.SysElement;
 import model.SysMethod;
 import model.SysPackage;
 import model.SysRoot;
-
+import analysis.ClassAnalysis2;
+import analysis.MethodAnalysis;
+import analysis.SysAnalysis;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.GraphElementAccessor;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -32,12 +29,11 @@ import edu.uci.ics.jung.graph.DelegateForest;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
-
+import gui.CallChainWindow;
 import gui.ControlFlowGraphWindow;
 import gui.GUIWindowInterface;
-import gui.CallChainWindow;
 import gui.MainWindow;
-import gui.SysGraph4AJUtils;
+import gui.SysUtils;
 
 public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 
@@ -66,9 +62,9 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 		GraphElementAccessor<V,E> pickSupport = visualizationViewer.getPickSupport();
 		if(pickSupport != null) {
 			final Layout l = visualizationViewer.getModel().getGraphLayout();
-			Element vertex = (Element)pickSupport.getVertex(l, p.getX(), p.getY());
+			SysElement vertex = (SysElement)pickSupport.getVertex(l, p.getX(), p.getY());
 			JPopupMenu popup = new JPopupMenu();
-			final Element el = vertex;
+			final SysElement el = vertex;
 			if(vertex instanceof SysMethod){
 				final SysMethod m = (SysMethod)vertex;
 				popup.add(new AbstractAction("View Call Chain"){
@@ -94,7 +90,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	}
 
 	@SuppressWarnings("serial")
-	private AbstractAction getViewPropertiesScreen(final Element el) {
+	private AbstractAction getViewPropertiesScreen(final SysElement el) {
 		return new AbstractAction("View Properties"){
 			public void actionPerformed(ActionEvent arg0) {
 				JFrame info = new JFrame(el.getFullyQualifiedName());
@@ -109,11 +105,10 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	}
 
 	@SuppressWarnings("serial")
-	private AbstractAction getViewControlFlowGraphScreen(final Element el) {
+	private AbstractAction getViewControlFlowGraphScreen(final SysElement el) {
 		return new AbstractAction("View Graph Flow Control"){
 			public void actionPerformed(ActionEvent arg0) {
-				//TODO adicionar opção "Gerar grafo de fluxo de controle"
-				ControlFlowGraphWindow w = new ControlFlowGraphWindow((SysMethod) el, sysRoot);
+				ControlFlowGraphWindow w = new ControlFlowGraphWindow((SysMethod) el);
 				w.setVisible(true);
 			}
 		};
@@ -133,7 +128,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 			Point2D p = e.getPoint();
 			GraphElementAccessor<V,E> pickSupport = visualizationViewer.getPickSupport();
 			if(pickSupport != null) {
-				Element vertex = (Element)pickSupport.getVertex(visualizationViewer.getModel().getGraphLayout(), p.getX(), p.getY());
+				SysElement vertex = (SysElement)pickSupport.getVertex(visualizationViewer.getModel().getGraphLayout(), p.getX(), p.getY());
 				boolean isWorkingOnVisualizationViewer = false;
 
 				if(vertex instanceof SysPackage && !((SysPackage) vertex).isAnalysed()) {
@@ -175,26 +170,26 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 					if(indicator == CALLCAIN_INDICATOR) {
 						CallChainM2G cc = new CallChainM2G();
 						AggregateLayout al = cc.doAggregateLayout(sysRoot,((CallChainWindow)c).getM());
-						VisualizationViewer<Element, Float> vv_callchain = cc.makeVV(al);
+						VisualizationViewer<SysElement, Float> vv_callchain = cc.makeVV(al);
 						this.windowInterface.setCenterPanel(vv_callchain);
 						this.windowInterface.makeGoodVisual(vv_callchain);
 					} else {
-						DelegateTree<Element, Float> delegateTree = new  DelegateTree<Element, Float>();
+						DelegateTree<SysElement, Float> delegateTree = new  DelegateTree<SysElement, Float>();
 						delegateTree.addVertex(this.sysRoot);
 						delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, this.sysRoot);
-						DelegateForest<Element, Float> delegateForest = ModelToGraph.tree_to_forest(delegateTree);
-						AggregateLayout aggregateLayout = new AggregateLayout(new TreeLayout<Element, Float>(delegateForest, this.deltaX, this.deltaY));
-						VisualizationViewer anotherVisualizationViewer = new VisualizationViewer<Element, Float>(aggregateLayout);
+						DelegateForest<SysElement, Float> delegateForest = ModelToGraph.tree_to_forest(delegateTree);
+						AggregateLayout aggregateLayout = new AggregateLayout(new TreeLayout<SysElement, Float>(delegateForest, this.deltaX, this.deltaY));
+						VisualizationViewer anotherVisualizationViewer = new VisualizationViewer<SysElement, Float>(aggregateLayout);
 						this.windowInterface.setCenterPanel(anotherVisualizationViewer);
 						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
-						this.windowInterface.makeGoodVisual((VisualizationViewer<Element, Float>) this.windowInterface.getCenter());
-						this.windowInterface.makeMenuBar((VisualizationViewer<Element, Float>) this.windowInterface.getCenter());
-						EspecialEdgesTable<Element, Float> et = ModelToGraph.getEspecialEdges(this.sysRoot, delegateForest);
+						this.windowInterface.makeGoodVisual((VisualizationViewer<SysElement, Float>) this.windowInterface.getCenter());
+						this.windowInterface.makeMenuBar((VisualizationViewer<SysElement, Float>) this.windowInterface.getCenter());
+						EspecialEdgesTable<SysElement, Float> et = ModelToGraph.getEspecialEdges(this.sysRoot, delegateForest);
 						ModelToGraph.addEspecialEdges(delegateForest, et);
 						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
 						this.windowInterface.getTextArea().append("Analysing: "+vertex.toString()+"\n");
 						//centering the vertex
-						SysGraph4AJUtils.setAtCenter(vertex,
+						SysUtils.setAtCenter(vertex,
 								aggregateLayout, 
 								this.windowInterface.getFrame(), 
 								((VisualizationViewer) this.windowInterface.getCenter()));

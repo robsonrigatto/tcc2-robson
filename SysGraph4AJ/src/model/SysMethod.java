@@ -14,24 +14,22 @@ import analysis.SysAnalysis;
 
 
 
-public class SysMethod implements Element{
+public class SysMethod implements SysElement {
+	
 	private String name;
 	private String returnType;
 	private String visibility;
 	private boolean isStatic;
-	private Element owner;
+	private SysElement owner;
 	private boolean isAnalysed;
 	private Vector<String> parameters = new Vector<String>();
-
-	//private HashSet<String> exceptions = new HashSet<String>();
-	//private HashSet<String> exceptionsCalls = new HashSet<String>();
-	//private HashSet<SysMethod> calls = new HashSet<SysMethod>();
-	//private HashSet<SysAdvice> affected = new HashSet<SysAdvice>();
 
 	private ArrayList<String> exceptions = new ArrayList<String>();
 	private ArrayList<String> exceptionsCatched = new ArrayList<String>();
 	private ArrayList<SysMethod> calls = new ArrayList<SysMethod>();
 	private ArrayList<SysAdvice> affected = new ArrayList<SysAdvice>();
+	
+	private java.lang.reflect.Method method;
 
 	/**@param SysAdvice the advice that affects this method*/
 	public void addAffectedBy(SysAdvice a){
@@ -83,6 +81,7 @@ public class SysMethod implements Element{
 				this.addParameter(vet_class[i].getCanonicalName());
 			}
 		}	
+		this.method = meth;
 	}
 
 	/**@param s a hash set of called methods*/
@@ -98,18 +97,18 @@ public class SysMethod implements Element{
 
 	/**@param sysMethod a called method*/
 	public void add(SysMethod sysMethod) {
-		calls.add(sysMethod); 
+		this.calls.add(sysMethod); 
 	}
 
 	/**@param s a hash set of called methods*/
 	public void addDependency(HashSet<SysMethod> s) {
 		for(SysMethod a : s)
-			calls.add(a);
+			this.calls.add(a);
 	}
 
 	/**@param sysMethod a called method*/
 	public void addDependency(SysMethod sysMethod) {
-		calls.add(sysMethod); 
+		this.calls.add(sysMethod); 
 	}
 
 	/**@param exceptionsCalls exceptions declared to throw*/
@@ -120,11 +119,11 @@ public class SysMethod implements Element{
 	}
 
 	public void addException(String string) {
-		exceptions.add("L"+string+";");
+		this.exceptions.add("L"+string+";");
 	}
 
 	public void addException(SysException e) {
-		exceptions.add("L"+e.getFullyQualifiedName()+";");
+		this.exceptions.add("L"+e.getFullyQualifiedName()+";");
 	}
 
 	public void addParameter(Vector<String> param) {
@@ -143,11 +142,11 @@ public class SysMethod implements Element{
 		if(p.startsWith("L")) p =p.substring(1);
 		if(p.endsWith(";")) p =p.substring(0, p.length()-1);
 		if(b)p="["+p;
-		parameters.add(p);
+		this.parameters.add(p);
 	}
 
 	public boolean dependsOn(String dependency) {
-		for(SysMethod s : calls)
+		for(SysMethod s : this.calls)
 			if(s.equals(dependency)) 
 				return true;
 		return false;
@@ -161,7 +160,7 @@ public class SysMethod implements Element{
 		return false;
 	}
 
-	public boolean equals(Element m) {
+	public boolean equals(SysElement m) {
 		if(! (m instanceof SysMethod)) return false;
 		if (this.isStatic != ((SysMethod) m).isStatic())
 			return false;
@@ -175,7 +174,7 @@ public class SysMethod implements Element{
 
 		boolean contains; 
 		String compare; 
-		Iterator<String> i1 = parameters.iterator();
+		Iterator<String> i1 = this.parameters.iterator();
 		Iterator<String> i2; 
 		while (i1.hasNext()) {
 			i2 = ((SysMethod) m).getParameters().iterator();
@@ -194,7 +193,7 @@ public class SysMethod implements Element{
 		return true;
 	}
 
-	public Element get(String thisName, String sig, boolean isLast) {
+	public SysElement get(String thisName, String sig, boolean isLast) {
 		return null;
 	}
 
@@ -203,8 +202,8 @@ public class SysMethod implements Element{
 		return this.calls;
 	}
 
-	public HashSet<Element> getChildElements(){
-		return new HashSet<Element>();
+	public HashSet<SysElement> getChildElements(){
+		return new HashSet<SysElement>();
 	}
 
 	/**get all the exceptions declared to throw*/
@@ -213,15 +212,15 @@ public class SysMethod implements Element{
 	}
 
 	public String getFullyQualifiedName() {
-		if(owner!=null)return owner.getFullyQualifiedName()+"."+this.name;
-		return name;
+		if(this.owner!=null)return owner.getFullyQualifiedName()+"."+this.name;
+		return this.name;
 	}
 
 	public String getName() {
 		return this.name;
 	}
 
-	public Element getOwner() {
+	public SysElement getOwner() {
 		return owner;
 	}
 
@@ -287,7 +286,7 @@ public class SysMethod implements Element{
 		return mayThrow(e.getFullyQualifiedName());
 	}
 
-	public Element partialClone() {
+	public SysElement partialClone() {
 		SysMethod m = new SysMethod(isStatic, name, returnType, visibility);
 		m.setOwner(owner);
 		return m;
@@ -301,7 +300,7 @@ public class SysMethod implements Element{
 		this.isAnalysed=b;
 	}
 
-	public void setOwner(Element owner) {
+	public void setOwner(SysElement owner) {
 		this.owner = owner;
 	}
 
@@ -407,7 +406,7 @@ public class SysMethod implements Element{
 		return equalsParamList(l);
 	}
 
-	public Element getMax(String called, String sig) {
+	public SysElement getMax(String called, String sig) {
 		if(this.equalsParamList(sig) && (called.equals("") || called.startsWith(name))) return this;
 		return this.owner;
 	}
@@ -419,7 +418,7 @@ public class SysMethod implements Element{
 		return false;
 	}
 
-	public void add(Element e) {
+	public void add(SysElement e) {
 		if(e instanceof SysException){
 			add((SysException)e);
 		} else{
@@ -471,6 +470,12 @@ public class SysMethod implements Element{
 			this.addException(c.getCanonicalName());
 		}
 
+	}
+
+
+	public java.lang.reflect.Method getMethod() {
+		// TODO Auto-generated method stub
+		return this.method;
 	}
 
 }

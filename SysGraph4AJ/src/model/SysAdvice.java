@@ -62,7 +62,7 @@ public class SysAdvice extends SysMethod{
 		this.setOwner(method.getOwner());
 	}
 	
-	public boolean equals(Element e){
+	public boolean equals(SysElement e){
 		boolean equals = false;
 		if(e instanceof SysAdvice){
 			equals=true;
@@ -121,7 +121,7 @@ public class SysAdvice extends SysMethod{
 	/**@return true if and only if a given method is actually an advice*/
 	public static boolean isAdvice(SysMethod dependency) {
 		if(dependency!=null && dependency.getName().contains("ajc$")) return true;
-		Element e=dependency;
+		SysElement e=dependency;
 		while(e!=null){
 			e=e.getOwner();
 			if(e instanceof SysAspect) return true;

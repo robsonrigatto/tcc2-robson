@@ -16,7 +16,7 @@ public class SysAspect extends SysClass {
 	public SysAspect(SysClass c){
 		this(c.getName());
 		//begin{remove the class and add the aspect to its owner} 
-		Element e = c.getOwner();
+		SysElement e = c.getOwner();
 		if(e instanceof SysClass && ((SysClass)e).contains(c)){
 			((SysClass)e).remove(c);
 			((SysClass)e).add(this);
@@ -84,7 +84,7 @@ public class SysAspect extends SysClass {
 	}
 
 	/**get a new class with same name and owner, but not add this class to the owner*/
-	public Element partialClone(){
+	public SysElement partialClone(){
 		SysAspect c = new SysAspect(this.getName());
 		c.setOwner(this.getOwner());
 		return c;
@@ -104,9 +104,9 @@ public class SysAspect extends SysClass {
 	}
 
 	/**@return an element that has the same name as it is asked*/
-	public Element get(String thisName, String sig, boolean isLast){
+	public SysElement get(String thisName, String sig, boolean isLast){
 		if(thisName==null || thisName.equals("")) return null;
-		Element e = super.get(thisName, sig, isLast);
+		SysElement e = super.get(thisName, sig, isLast);
 		if(thisName.contains(" ")){
 			thisName=thisName.substring(0,thisName.indexOf(" "));
 		}
@@ -122,8 +122,8 @@ public class SysAspect extends SysClass {
 	}
 
 	/**@return the max element it can found given the path and signature*/
-	public Element getMax(String called, String sig){
-		Element e = super.getMax(called, sig);
+	public SysElement getMax(String called, String sig){
+		SysElement e = super.getMax(called, sig);
 		if(called.contains(" ")){
 			called = called.substring(0,called.indexOf(" ")); //gets just the fully qualified name
 		}
@@ -136,8 +136,8 @@ public class SysAspect extends SysClass {
 	}
 
 	/**get all child elements, i.e., methods, pieces of advice,, attributes, etc*/
-	public HashSet<Element> getChildElements(){
-		HashSet<Element> e = super.getChildElements();
+	public HashSet<SysElement> getChildElements(){
+		HashSet<SysElement> e = super.getChildElements();
 		e.addAll(this.advice.values());
 		e.addAll(this.pointcuts.values());
 		return e;

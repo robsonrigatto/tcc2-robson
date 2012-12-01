@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.StringTokenizer;
 
-public class SysRoot implements Element{
+public class SysRoot implements SysElement{
 	private String pathToBin;
 	private HashMap<String, SysPackage> packages = new HashMap<String, SysPackage>();
 
@@ -89,7 +89,7 @@ public class SysRoot implements Element{
 		if(sig.startsWith("\t")) sig=sig.replace("\t", "");
 		if(sig.contains("(")) justParameters=sig.substring(sig.indexOf("(")+1);
 		if(justParameters.contains(")")) justParameters=justParameters.substring(0,justParameters.indexOf(")"));
-		Element e=this;
+		SysElement e=this;
 		while(tokenizer.hasMoreTokens() && e!=null){
 			String thisName = tokenizer.nextToken();
 			e=e.get(thisName, justParameters, !tokenizer.hasMoreTokens());
@@ -112,7 +112,7 @@ public class SysRoot implements Element{
 		return null;
 	}
 
-	public Element get(String thisName, String sig, boolean isLast) {
+	public SysElement get(String thisName, String sig, boolean isLast) {
 		return packages.get(thisName);
 	}
 
@@ -123,12 +123,12 @@ public class SysRoot implements Element{
 	}
 
 	
-	public Element getOwner() {
+	public SysElement getOwner() {
 		return null;
 	}
 
 	
-	public void setOwner(Element e) {
+	public void setOwner(SysElement e) {
 	}
 
 	
@@ -137,23 +137,23 @@ public class SysRoot implements Element{
 	}
 
 	
-	public boolean equals(Element e) {
+	public boolean equals(SysElement e) {
 		return false;
 	}
 
 	
-	public Element partialClone() {
+	public SysElement partialClone() {
 		return null;
 	}
 
 	
-	public HashSet<Element> getChildElements() {
+	public HashSet<SysElement> getChildElements() {
 		return null;
 	}
 
 	
-	public Element getMax(String called, String sig) {
-		Element e=null;
+	public SysElement getMax(String called, String sig) {
+		SysElement e=null;
 		String key = called.substring(0, called.indexOf(".")); //the element we are looking for at the moment
 		e = packages.get(key); //tries to get the element
 		
@@ -168,7 +168,7 @@ public class SysRoot implements Element{
 		return e;
 	}
 
-  public void add(Element e) {
+  public void add(SysElement e) {
 		if(e instanceof SysPackage){
 			add((SysPackage)e);
 		}

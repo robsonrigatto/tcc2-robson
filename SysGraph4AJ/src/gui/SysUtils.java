@@ -17,7 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JTextArea;
 
-import model.Element;
+import model.SysElement;
 import model.SysRoot;
 import visualization.DoubleClickGraphMouse;
 import visualization.ModelToGraph;
@@ -36,7 +36,9 @@ import edu.uci.ics.jung.visualization.transform.MutableTransformer;
  *
  */
 
-public class SysGraph4AJUtils {
+public class SysUtils {
+	
+	private static final SysTransformers TRANSFORMERS = new SysTransformers();
 	
 	/**
 	 * Sets the given container and puts it in the center of the GUIWindow*/
@@ -58,7 +60,7 @@ public class SysGraph4AJUtils {
 		c.add(pane, BorderLayout.CENTER);
 		target.setCenter(pane);
 		if(pane instanceof VisualizationViewer){
-			VisualizationViewer<Element, Float> vv = (VisualizationViewer<Element,Float>) pane;
+			VisualizationViewer<SysElement, Float> vv = (VisualizationViewer<SysElement,Float>) pane;
 			target.makeGoodVisual(vv);
 			vv.updateUI();
 		}
@@ -66,13 +68,13 @@ public class SysGraph4AJUtils {
 	
 	/**
 	 * Makes a good visual, i.e., set transformers to put color in the graph, set names, and tooltip*/
-	public static void makeGoodVisual(VisualizationViewer<Element, Float>  vv, GUIWindowInterface target){
-		RenderContext<Element, Float> rc = vv.getRenderContext();
-		rc.setVertexFillPaintTransformer(Transformers.getVertexPaint());		//vertex color
-		rc.setEdgeStrokeTransformer(Transformers.getEdgeStrokeTransformer());	//edge type
-		rc.setVertexLabelTransformer(Transformers.getVertexToString());		//vertex label
-		rc.setEdgeLabelTransformer(Transformers.getEdgeToString());			//edge label
-		vv.setVertexToolTipTransformer(Transformers.getToolTip());
+	public static void makeGoodVisual(VisualizationViewer<SysElement, Float>  vv, GUIWindowInterface target){
+		RenderContext<SysElement, Float> rc = vv.getRenderContext();
+		rc.setVertexFillPaintTransformer(TRANSFORMERS.getVertexPaint());		//vertex color
+		rc.setEdgeStrokeTransformer(TRANSFORMERS.getEdgeStrokeTransformer());		//edge type
+		rc.setVertexLabelTransformer(TRANSFORMERS.getVertexToString());		//vertex label
+		rc.setEdgeLabelTransformer(TRANSFORMERS.getEdgeToString());			//edge label
+		vv.setVertexToolTipTransformer(TRANSFORMERS.getToolTip());
 		vv.getRenderer().getVertexLabelRenderer().setPosition(Position.AUTO);
 		/*care about the mouse plugin*/
 		target.makeMenuBar(vv);
@@ -80,8 +82,8 @@ public class SysGraph4AJUtils {
 	
 	/**
 	 * makes a menu bar for the GUI, based on the VV*/
-	public static void makeMenuBar(VisualizationViewer<Element, Float>  vv, GUIWindowInterface target, SysRoot r){
-		DoubleClickGraphMouse<Element, Float> gm = new DoubleClickGraphMouse<Element, Float>(target,r);
+	public static void makeMenuBar(VisualizationViewer<SysElement, Float>  vv, GUIWindowInterface target, SysRoot r){
+		DoubleClickGraphMouse<SysElement, Float> gm = new DoubleClickGraphMouse<SysElement, Float>(target,r);
 		vv.setGraphMouse(gm);
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = gm.getModeMenu();
@@ -93,7 +95,7 @@ public class SysGraph4AJUtils {
 	}
 	
 	/**center the vertex in screen*/
-	public static void setAtCenter(Element vertex, AggregateLayout<Element, Float> al, JFrame frame, VisualizationViewer<Element, Float> vv){
+	public static void setAtCenter(SysElement vertex, AggregateLayout<SysElement, Float> al, JFrame frame, VisualizationViewer<SysElement, Float> vv){
 		Point2D vertexPoint = al.transform(vertex);
 		Rectangle frame_area = frame.getBounds();
 		double calculatedDeltaY = 120.0d;
@@ -116,14 +118,14 @@ public class SysGraph4AJUtils {
 	 * 		Par�metro que referencia a raiz do programa.
 	 * @return
 	 */
-	public static VisualizationViewer<Element, Float> createVisualizationViewerBySysRoot(
+	public static VisualizationViewer<SysElement, Float> createVisualizationViewerBySysRoot(
 			SysRoot root, int deltaX, int deltaY) {
-		DelegateTree<Element, Float> delegateTree = new  DelegateTree<Element, Float>();
+		DelegateTree<SysElement, Float> delegateTree = new  DelegateTree<SysElement, Float>();
 		delegateTree.addVertex(root);
 		delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
-		DelegateForest<Element, Float> delegateForest = new DelegateForest<Element, Float>(delegateTree);
-		VisualizationViewer<Element, Float> visualizationViewer = new VisualizationViewer<Element, Float>(
-				new TreeLayout<Element, Float>(
+		DelegateForest<SysElement, Float> delegateForest = new DelegateForest<SysElement, Float>(delegateTree);
+		VisualizationViewer<SysElement, Float> visualizationViewer = new VisualizationViewer<SysElement, Float>(
+				new TreeLayout<SysElement, Float>(
 						delegateForest, deltaX, deltaY));
 		return visualizationViewer;
 	}

@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 
 
-public class SysClass implements Element{
+public class SysClass implements SysElement{
 
 	private HashSet<SysClass> interfaces = new HashSet<SysClass>();
 	private HashMap<String, SysField> fields = new HashMap<String, SysField>();
@@ -13,7 +13,7 @@ public class SysClass implements Element{
 	private boolean isAnalysed = false;
 	private HashMap<String, SysMethod> methods = new HashMap<String,SysMethod>();
 	private String name;
-	private Element owner;
+	private SysElement owner;
 	private SysClass superClass;
 
 	/**create a single class*/
@@ -22,7 +22,7 @@ public class SysClass implements Element{
 	}
 
 
-	public void add(Element e) {
+	public void add(SysElement e) {
 		if(e instanceof SysClass){
 			add((SysClass)e);
 		} else {
@@ -105,7 +105,7 @@ public class SysClass implements Element{
 	}
 
 	/**return true if the passed element has the same fully qualified name and if it's a class*/
-	public boolean equals(Element d) { 
+	public boolean equals(SysElement d) { 
 		if(d instanceof SysClass)
 			return this.getFullyQualifiedName().equalsIgnoreCase(d.getFullyQualifiedName());
 		return false;
@@ -117,7 +117,7 @@ public class SysClass implements Element{
 	}
 
 	/**get the element that is represented by the passed string*/
-	public Element get(String thisName, String sig, boolean isLast) {
+	public SysElement get(String thisName, String sig, boolean isLast) {
 		if(isLast && thisName.contains(" ")) thisName=thisName.substring(0,thisName.indexOf(" "));
 		if(isLast) {
 			for(SysMethod m : this.getMethods()){
@@ -131,8 +131,8 @@ public class SysClass implements Element{
 	}
 
 	/**get all child elements, it's inner classes, fileds and methods*/
-	public HashSet<Element> getChildElements(){
-		HashSet<Element> hs = new HashSet<Element>();
+	public HashSet<SysElement> getChildElements(){
+		HashSet<SysElement> hs = new HashSet<SysElement>();
 		hs.addAll(fields.values());
 		hs.addAll(innerClasses.values());
 		hs.addAll(methods.values());
@@ -166,7 +166,7 @@ public class SysClass implements Element{
 	}
 
 	/**get the owner of this class, could be a package or a class*/
-	public Element getOwner() {
+	public SysElement getOwner() {
 		return owner;
 	}
 
@@ -181,7 +181,7 @@ public class SysClass implements Element{
 	}
 
 	/**get a new class with same name and owner, but not add this class to the owner*/
-	public Element partialClone(){
+	public SysElement partialClone(){
 		SysClass c = new SysClass(this.name);
 		c.owner=owner;
 		return c;
@@ -194,7 +194,7 @@ public class SysClass implements Element{
 	}
 
 	/**sets the owner of this SysClass*/
-	public void setOwner(Element e) {
+	public void setOwner(SysElement e) {
 		owner = e;
 	}
 
@@ -224,9 +224,9 @@ public class SysClass implements Element{
 	}
 
 	/**gets the maximum element in the tree*/
-	public Element getMax(String called, String sig) {
+	public SysElement getMax(String called, String sig) {
 		assert(!called.equals(""));
-		Element e = null;
+		SysElement e = null;
 		if(called.contains(".")){//we are looking for a inner class
 			e = this.innerClasses.get(called.substring(0, called.indexOf(".")));
 			if(e!=null){ //if this class contains an inner class with same name we must get the max element in it

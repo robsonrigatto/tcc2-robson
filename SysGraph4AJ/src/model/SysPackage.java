@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import analysis.MethodAnalysis;
 
-public class SysPackage implements Element{
+public class SysPackage implements SysElement{
 
 	private String name;
 	private HashMap<String, SysClass> classes = new HashMap<String, SysClass>();
@@ -122,7 +122,7 @@ public class SysPackage implements Element{
 		//				return false;
 	}
 
-	public boolean equals(Element p){
+	public boolean equals(SysElement p){
 		if(p==null) return false;
 		return this.getFullyQualifiedName().equalsIgnoreCase(p.getFullyQualifiedName());
 
@@ -146,7 +146,7 @@ public class SysPackage implements Element{
 		return this.name;
 	}
 
-	public Element getOwner() {
+	public SysElement getOwner() {
 		return this.owner;
 	}
 
@@ -162,7 +162,7 @@ public class SysPackage implements Element{
 		this.isAnalysed = b;
 	}
 
-	public void setOwner(Element q) {
+	public void setOwner(SysElement q) {
 		this.owner=(SysPackage)q;
 	}
 
@@ -170,28 +170,28 @@ public class SysPackage implements Element{
 		return this.getFullyQualifiedName();
 	}
 
-	public Element partialClone() {
+	public SysElement partialClone() {
 		SysPackage p = new SysPackage(name);
 		p.setOwner(owner);
 		return p;
 	}
 
-	public HashSet<Element> getChildElements(){
-		HashSet<Element> hs = new HashSet<Element>();
-		for(Element e : packages.values()){
+	public HashSet<SysElement> getChildElements(){
+		HashSet<SysElement> hs = new HashSet<SysElement>();
+		for(SysElement e : packages.values()){
 			hs.add(e);
 		}
-		for(Element e : classes.values()){
+		for(SysElement e : classes.values()){
 			hs.add(e);
 		}
-		for(Element e : aspects.values()){
+		for(SysElement e : aspects.values()){
 			hs.add(e);
 		}
 		return hs;
 	}
 
-	public Element getEquals(String toFind){
-		Element e = this.packages.get(toFind);
+	public SysElement getEquals(String toFind){
+		SysElement e = this.packages.get(toFind);
 		if(e==null){
 			e = this.aspects.get(toFind);
 			if(e==null){
@@ -219,7 +219,7 @@ public class SysPackage implements Element{
 		return null;
 	}
 
-	public Element get(String thisName, String sig, boolean isLast){
+	public SysElement get(String thisName, String sig, boolean isLast){
 		if(isLast) return null;
 		if(this.packages.containsKey(thisName)) return this.packages.get(thisName);
 		if(this.aspects.containsKey(thisName)) return this.aspects.get(thisName);
@@ -237,9 +237,9 @@ public class SysPackage implements Element{
 	}
 
 	
-	public Element getMax(String called, String sig) {
+	public SysElement getMax(String called, String sig) {
 		assert(called.contains("."));
-		Element e = null;
+		SysElement e = null;
 		String key = called.substring(0, called.indexOf(".")); //the element we are looking for at the moment
 	  //the following bit of source tries to get the next element into this package
 		{
@@ -261,7 +261,7 @@ public class SysPackage implements Element{
 	}
 
 	
-	public void add(Element e) {
+	public void add(SysElement e) {
 	  if(e instanceof SysPackage){
 	  	add((SysPackage) e);
 	  } else{

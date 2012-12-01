@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import analysis.SysAnalysis;
 
-public class SysField implements Element{
+public class SysField implements SysElement{
 	private String type;
 	private String name;
 	private String visibility;
@@ -27,7 +27,7 @@ public class SysField implements Element{
 				SysAnalysis.getVisibility(field.getModifiers()));
 	}
 
-	public boolean equals(Element a){
+	public boolean equals(SysElement a){
 		if(this.type.equals(((SysField) a).getType()) && this.name.equals(a.getName())) return true;
 		return false;
 	}
@@ -41,7 +41,7 @@ public class SysField implements Element{
 		return this.name;
 	}
 
-	public Element getOwner(){
+	public SysElement getOwner(){
 		return this.owner;
 	}
 
@@ -57,32 +57,32 @@ public class SysField implements Element{
 		return this.isStatic;
 	}
 
-	public void setOwner(Element owner){
+	public void setOwner(SysElement owner){
 		this.owner=(SysClass)owner;
 	}
 
 
-	public Element partialClone() {
+	public SysElement partialClone() {
 		SysField f = new SysField(isStatic, type, name, visibility);
 		f.setOwner(owner);
 		return f;
 	}
 
 
-	public HashSet<Element> getChildElements() {
-		return new HashSet<Element>();
+	public HashSet<SysElement> getChildElements() {
+		return new HashSet<SysElement>();
 	}
 
 
-	public Element get(String thisName, String sig, boolean isLast) {
+	public SysElement get(String thisName, String sig, boolean isLast) {
 		return null;
 	}
 
-	public Element getMax(String called, String sig) {
+	public SysElement getMax(String called, String sig) {
 		return null;
 	}
 
-	public void add(Element e){
+	public void add(SysElement e){
 		//do nothing
 	}
 

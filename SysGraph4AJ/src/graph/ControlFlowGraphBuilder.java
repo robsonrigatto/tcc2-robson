@@ -1,5 +1,6 @@
 package graph;
 
+
 import java.lang.reflect.Method;
 
 import org.apache.bcel.Repository;
@@ -9,8 +10,8 @@ import org.apache.bcel.generic.MethodGen;
 
 /**
  * Classe responsável pela construção de um grafo de fluxo de controle através da estrutura contida em
- * {@link ControlFlowGraphBlockNode} através de um método representado por seu nome e seus parâmetros ou
- * também pelo tipo {@link Method}.
+ * {@link ControlFlowGraphNode} através de um método representado por seu nome e seus parâmetros ou
+ * também pelo tipo {@link Method}. 
  * 
  * @author robson
  *
@@ -25,9 +26,9 @@ public class ControlFlowGraphBuilder {
 	 * @param method
 	 * 		método a ser referenciadona construção do grafo
 	 * 
-	 * @return instância de {@link ControlFlowGraphBlockNode} com o grafo de fluxo de controle
+	 * @return instância de {@link ControlFlowGraphNode} com o grafo de fluxo de controle
 	 */
-	public ControlFlowGraphBlockNode build(Method method) {		
+	public ControlFlowGraphNode build(Method method) {		
 		try {
 			Class<?> declaringClass = method.getDeclaringClass();
 			JavaClass javaClass = Repository.lookupClass(declaringClass);
@@ -50,10 +51,10 @@ public class ControlFlowGraphBuilder {
 	 * @param parameterTypes
 	 * 		lista dos tipos dos parâmetros do método buscado
 	 * 
-	 * @return instância de {@link ControlFlowGraphBlockNode} com o grafo de fluxo de controle
+	 * @return instância de {@link ControlFlowGraphNode} com o grafo de fluxo de controle
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public ControlFlowGraphBlockNode build(Class clazz, String methodName, Class<?>... parameterTypes) {
+	public ControlFlowGraphNode build(Class clazz, String methodName, Class<?>... parameterTypes) {
 		try {
 			return this.build(clazz.getMethod(methodName, parameterTypes));
 		} catch (NoSuchMethodException | SecurityException e) {
