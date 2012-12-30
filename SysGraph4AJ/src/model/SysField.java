@@ -2,10 +2,12 @@ package model;
 
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
+import java.util.Set;
 
 import analysis.SysAnalysis;
 
-public class SysField implements SysElement{
+public class SysField implements SysElement {
+	
 	private String type;
 	private String name;
 	private String visibility;
@@ -57,7 +59,7 @@ public class SysField implements SysElement{
 		return this.isStatic;
 	}
 
-	public void setOwner(SysElement owner){
+	public void setOwner(IElement owner){
 		this.owner=(SysClass)owner;
 	}
 
@@ -69,8 +71,8 @@ public class SysField implements SysElement{
 	}
 
 
-	public HashSet<SysElement> getChildElements() {
-		return new HashSet<SysElement>();
+	public Set<IElement> getChildElements() {
+		return new HashSet<IElement>();
 	}
 
 
@@ -82,7 +84,7 @@ public class SysField implements SysElement{
 		return null;
 	}
 
-	public void add(SysElement e){
+	public void addChild(IElement e){
 		//do nothing
 	}
 

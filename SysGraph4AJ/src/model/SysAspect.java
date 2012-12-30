@@ -3,6 +3,7 @@ package model;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 
 public class SysAspect extends SysClass {
@@ -136,8 +137,8 @@ public class SysAspect extends SysClass {
 	}
 
 	/**get all child elements, i.e., methods, pieces of advice,, attributes, etc*/
-	public HashSet<SysElement> getChildElements(){
-		HashSet<SysElement> e = super.getChildElements();
+	public Set<IElement> getChildElements(){
+		Set<IElement> e = super.getChildElements();
 		e.addAll(this.advice.values());
 		e.addAll(this.pointcuts.values());
 		return e;

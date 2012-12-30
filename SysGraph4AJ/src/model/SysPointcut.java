@@ -2,6 +2,7 @@ package model;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.aspectj.lang.annotation.Pointcut;
 
@@ -45,12 +46,12 @@ public class SysPointcut implements SysElement {
 	}
 
 	
-	public SysElement getOwner() {
+	public IElement getOwner() {
 		return this.owner;
 	}
 
 	
-	public void setOwner(SysElement e) {
+	public void setOwner(IElement e) {
 		if(e instanceof SysAdvice){
 			this.owner=(SysAdvice)e;
 		}
@@ -58,7 +59,7 @@ public class SysPointcut implements SysElement {
 
 	
 	public String getFullyQualifiedName() {
-		return getOwner().getFullyQualifiedName()+"."+getName();
+		return ((SysElement)getOwner()).getFullyQualifiedName()+"."+getName();
 	}
 
 	
@@ -89,8 +90,8 @@ public class SysPointcut implements SysElement {
 	}
 
 	
-	public HashSet<SysElement> getChildElements() {
-		return new HashSet<SysElement>();
+	public Set<IElement> getChildElements() {
+		return new HashSet<IElement>();
 	}
 
 	
@@ -104,7 +105,7 @@ public class SysPointcut implements SysElement {
 	}
 
 	
-	public void add(SysElement e) {
+	public void addChild(IElement e) {
 		return;
 
 	}

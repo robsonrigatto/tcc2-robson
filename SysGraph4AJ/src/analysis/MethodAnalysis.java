@@ -236,10 +236,10 @@ public class MethodAnalysis {
 						inner = (SysClass)e;
 					}
 					if(e instanceof SysClass || e instanceof SysAspect){
-						inner.add(e);
+						inner.addChild(e);
 					}else{ 
 						if(e instanceof SysMethod || e instanceof SysAdvice){
-							inner.add(e);
+							inner.addChild(e);
 						}
 					}
 					inner.setOwner(c);
@@ -600,10 +600,10 @@ public class MethodAnalysis {
 		try{
 			SysElement e1 = tryOption(e, nextPath, signature, r);
 			if(e instanceof SysClass){
-				((SysClass)e).add(e1);
+				((SysClass)e).addChild(e1);
 			} else {
 				if(e instanceof SysPackage){
-					((SysPackage)e).add(e1);
+					((SysPackage)e).addChild(e1);
 				}
 			}
 			return e;

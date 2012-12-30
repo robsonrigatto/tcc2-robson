@@ -225,7 +225,7 @@ public class Main {
   
   public static void jframeFromMethod(SysMethod m){
     if(m==null){JOptionPane.showMessageDialog(null, "null SysMethod");return;}
-    JFrame frame = new JFrame(m.getOwner().getFullyQualifiedName() + "."+ m.getName()+ " view");
+    JFrame frame = new JFrame(((SysElement)m.getOwner()).getFullyQualifiedName() + "."+ m.getName()+ " view");
     frame.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     frame.setLayout(new GridLayout(0,1));
     Container c = frame.getContentPane();

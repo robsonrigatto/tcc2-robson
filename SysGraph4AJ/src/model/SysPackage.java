@@ -2,6 +2,7 @@ package model;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
 import analysis.MethodAnalysis;
 
@@ -162,7 +163,7 @@ public class SysPackage implements SysElement{
 		this.isAnalysed = b;
 	}
 
-	public void setOwner(SysElement q) {
+	public void setOwner(IElement q) {
 		this.owner=(SysPackage)q;
 	}
 
@@ -176,8 +177,8 @@ public class SysPackage implements SysElement{
 		return p;
 	}
 
-	public HashSet<SysElement> getChildElements(){
-		HashSet<SysElement> hs = new HashSet<SysElement>();
+	public Set<IElement> getChildElements(){
+		HashSet<IElement> hs = new HashSet<IElement>();
 		for(SysElement e : packages.values()){
 			hs.add(e);
 		}
@@ -261,7 +262,7 @@ public class SysPackage implements SysElement{
 	}
 
 	
-	public void add(SysElement e) {
+	public void addChild(IElement e) {
 	  if(e instanceof SysPackage){
 	  	add((SysPackage) e);
 	  } else{

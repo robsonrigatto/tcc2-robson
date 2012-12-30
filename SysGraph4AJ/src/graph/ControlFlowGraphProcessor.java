@@ -1,6 +1,9 @@
 package graph;
 
 
+import graph.model.ControlFlowGraphEdgeType;
+import graph.model.ControlFlowGraphNode;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -91,7 +94,7 @@ public class ControlFlowGraphProcessor {
 				InstructionHandle tryInstruction = exceptionBlock.getStartPC();
 				
 				ControlFlowGraphNode tryBlock = this.processInstruction(tryInstruction, root, processedInstructionIds);				
-				blockNode.addChildNode(tryBlock);
+				blockNode.addChildNode(tryBlock, ControlFlowGraphEdgeType.TRY);
 				
 				InstructionHandle catchInstruction = exceptionBlock.getHandlerPC();
 				ControlFlowGraphNode catchBlock = this.processInstruction(catchInstruction, root, processedInstructionIds);
@@ -100,7 +103,7 @@ public class ControlFlowGraphProcessor {
 				
 				InstructionHandle finallyInstruction = exceptionBlock.getEndPC();
 				ControlFlowGraphNode finallyBlock = this.processInstruction(finallyInstruction, root, processedInstructionIds);
-				blockNode.addChildNode(finallyBlock);
+				blockNode.addChildNode(finallyBlock, ControlFlowGraphEdgeType.FINALLY);
 				
 				instructionHandle = finallyInstruction;
 				
@@ -122,7 +125,7 @@ public class ControlFlowGraphProcessor {
 			
 			if(!instructionHasNotProcessedConditional && !blockNode.isTryStatement()) {
 				ControlFlowGraphNode childNode = new ControlFlowGraphNode();
-				blockNode.addChildNode(childNode);
+				blockNode.addChildNode(childNode, ControlFlowGraphEdgeType.REFERENCE);
 				childNode.addInstruction(instructionHandle);
 				childNode.setReference(true);
 				
@@ -161,9 +164,11 @@ public class ControlFlowGraphProcessor {
 
 		boolean hasInstructionProcessed = processedInstructionIds.contains(ifTrueNextInstruction.getPosition());
 		if(!hasInstructionProcessed) {
-			blockNode.addChildNode(this.processInstruction(ifTrueNextInstruction, root, processedInstructionIds));
+			blockNode.addChildNode(this.processInstruction(ifTrueNextInstruction, root, processedInstructionIds), 
+				ControlFlowGraphEdgeType.IF);
 		}
-		blockNode.addChildNode(this.processInstruction(instructionHandle.getNext(), root, processedInstructionIds));
+		blockNode.addChildNode(this.processInstruction(instructionHandle.getNext(), root, processedInstructionIds), 
+				ControlFlowGraphEdgeType.ELSE);
 	}
 	
 	/**
@@ -186,10 +191,12 @@ public class ControlFlowGraphProcessor {
 		blockNode.addInstruction(instructionHandle);
 		InstructionHandle[] caseInstructions = switchInstruction.getTargets();
 		for(InstructionHandle caseInstruction : caseInstructions) {
-			blockNode.addChildNode(this.processInstruction(caseInstruction, root, processedInstructionIds));
+			blockNode.addChildNode(this.processInstruction(caseInstruction, root, processedInstructionIds), 
+				ControlFlowGraphEdgeType.CASE);
 		}
 		InstructionHandle defaultCaseInstruction = switchInstruction.getTarget();
-		blockNode.addChildNode(this.processInstruction(defaultCaseInstruction, root, processedInstructionIds));
+		blockNode.addChildNode(this.processInstruction(defaultCaseInstruction, root, processedInstructionIds), 
+				ControlFlowGraphEdgeType.DEFAULT);
 	}
 	
 	/**
@@ -230,10 +237,10 @@ public class ControlFlowGraphProcessor {
 			return;
 		}
 		
-		List<ControlFlowGraphNode> childNodes = root.getChildNodes();
+		Set<ControlFlowGraphNode> childNodes = root.getChildNodes();
 		for(ControlFlowGraphNode node : childNodes) {
 			this.addNodeToAllChildNodesFromRoot(node, targetBlock);
-			node.addChildNode(targetBlock);
+			node.addChildNode(targetBlock, ControlFlowGraphEdgeType.CATCH);
 		}
 	}
 }

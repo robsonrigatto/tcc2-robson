@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 
+import model.IElement;
 import model.SysElement;
 import model.SysPackage;
 import model.SysRoot;
@@ -29,7 +30,7 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 
 @SuppressWarnings("serial")
-public class MainWindow extends JFrame implements GUIWindowInterface{
+public class MainWindow extends JFrame implements GUIWindowInterface {
 
 	private static MainWindow self = null;
 	private static boolean window = false;
@@ -187,7 +188,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 			this.textArea.append("Beginning analysis\n");
 			SysRoot root = SysAnalysis.initialModel(this.path); // do the initial model
 			this.sysRoot = root;
-			VisualizationViewer<SysElement, Float> visualizationViewer 
+			VisualizationViewer<IElement, Object> visualizationViewer 
 				= SysUtils.createVisualizationViewerBySysRoot(root, this.deltaX, this.deltaY);
 			this.setCenterPanel(visualizationViewer);
 			visualizationViewer.updateUI();
@@ -238,17 +239,17 @@ public class MainWindow extends JFrame implements GUIWindowInterface{
 		container.add(pane, BorderLayout.CENTER);
 		this.setCenter(pane);
 		if(pane instanceof VisualizationViewer){
-			VisualizationViewer<SysElement, Float> visualizationViewer = ((VisualizationViewer<SysElement,Float>) pane);
+			VisualizationViewer<IElement, Object> visualizationViewer = ((VisualizationViewer<IElement,Object>) pane);
 			this.makeGoodVisual(visualizationViewer);
 			visualizationViewer.updateUI();
 		}
 	}
 
-	public void makeGoodVisual(VisualizationViewer<SysElement, Float> visualizationViewer){
+	public void makeGoodVisual(VisualizationViewer<IElement, Object> visualizationViewer){
 		SysUtils.makeGoodVisual(visualizationViewer, this);
 	}
 
-	public void makeMenuBar(VisualizationViewer<SysElement, Float> visualizationViewer){
+	public void makeMenuBar(VisualizationViewer<IElement, Object> visualizationViewer){
 		SysUtils.makeMenuBar(visualizationViewer, this, this.sysRoot);
 	}
 

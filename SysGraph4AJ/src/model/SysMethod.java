@@ -5,14 +5,13 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import org.apache.bcel.classfile.Method;
 
 import analysis.MethodAnalysis;
 import analysis.SysAnalysis;
-
-
 
 public class SysMethod implements SysElement {
 	
@@ -202,8 +201,8 @@ public class SysMethod implements SysElement {
 		return this.calls;
 	}
 
-	public HashSet<SysElement> getChildElements(){
-		return new HashSet<SysElement>();
+	public Set<IElement> getChildElements(){
+		return new HashSet<IElement>();
 	}
 
 	/**get all the exceptions declared to throw*/
@@ -220,7 +219,7 @@ public class SysMethod implements SysElement {
 		return this.name;
 	}
 
-	public SysElement getOwner() {
+	public IElement getOwner() {
 		return owner;
 	}
 
@@ -300,8 +299,8 @@ public class SysMethod implements SysElement {
 		this.isAnalysed=b;
 	}
 
-	public void setOwner(SysElement owner) {
-		this.owner = owner;
+	public void setOwner(IElement owner) {
+		this.owner = (SysElement) owner;
 	}
 
 	public String toString(){
@@ -418,7 +417,7 @@ public class SysMethod implements SysElement {
 		return false;
 	}
 
-	public void add(SysElement e) {
+	public void addChild(IElement e) {
 		if(e instanceof SysException){
 			add((SysException)e);
 		} else{

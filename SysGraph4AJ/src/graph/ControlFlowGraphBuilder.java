@@ -1,6 +1,8 @@
 package graph;
 
 
+import graph.model.ControlFlowGraphNode;
+
 import java.lang.reflect.Method;
 
 import org.apache.bcel.Repository;

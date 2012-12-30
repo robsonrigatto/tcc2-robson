@@ -17,7 +17,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JTextArea;
 
-import model.SysElement;
+import model.IElement;
 import model.SysRoot;
 import visualization.DoubleClickGraphMouse;
 import visualization.ModelToGraph;
@@ -60,7 +60,7 @@ public class SysUtils {
 		c.add(pane, BorderLayout.CENTER);
 		target.setCenter(pane);
 		if(pane instanceof VisualizationViewer){
-			VisualizationViewer<SysElement, Float> vv = (VisualizationViewer<SysElement,Float>) pane;
+			VisualizationViewer<IElement, Object> vv = (VisualizationViewer<IElement,Object>) pane;
 			target.makeGoodVisual(vv);
 			vv.updateUI();
 		}
@@ -68,8 +68,8 @@ public class SysUtils {
 	
 	/**
 	 * Makes a good visual, i.e., set transformers to put color in the graph, set names, and tooltip*/
-	public static void makeGoodVisual(VisualizationViewer<SysElement, Float>  vv, GUIWindowInterface target){
-		RenderContext<SysElement, Float> rc = vv.getRenderContext();
+	public static void makeGoodVisual(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target){
+		RenderContext<IElement, Object> rc = vv.getRenderContext();
 		rc.setVertexFillPaintTransformer(TRANSFORMERS.getVertexPaint());		//vertex color
 		rc.setEdgeStrokeTransformer(TRANSFORMERS.getEdgeStrokeTransformer());		//edge type
 		rc.setVertexLabelTransformer(TRANSFORMERS.getVertexToString());		//vertex label
@@ -82,8 +82,8 @@ public class SysUtils {
 	
 	/**
 	 * makes a menu bar for the GUI, based on the VV*/
-	public static void makeMenuBar(VisualizationViewer<SysElement, Float>  vv, GUIWindowInterface target, SysRoot r){
-		DoubleClickGraphMouse<SysElement, Float> gm = new DoubleClickGraphMouse<SysElement, Float>(target,r);
+	public static void makeMenuBar(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target, IElement r){
+		DoubleClickGraphMouse<IElement, Object> gm = new DoubleClickGraphMouse<IElement, Object>(target, r);
 		vv.setGraphMouse(gm);
 		JMenuBar menuBar = new JMenuBar();
 		JMenu menu = gm.getModeMenu();
@@ -95,7 +95,7 @@ public class SysUtils {
 	}
 	
 	/**center the vertex in screen*/
-	public static void setAtCenter(SysElement vertex, AggregateLayout<SysElement, Float> al, JFrame frame, VisualizationViewer<SysElement, Float> vv){
+	public static void setAtCenter(IElement vertex, AggregateLayout<IElement, Object> al, JFrame frame, VisualizationViewer<IElement, Object> vv){
 		Point2D vertexPoint = al.transform(vertex);
 		Rectangle frame_area = frame.getBounds();
 		double calculatedDeltaY = 120.0d;
@@ -118,14 +118,14 @@ public class SysUtils {
 	 * 		Par�metro que referencia a raiz do programa.
 	 * @return
 	 */
-	public static VisualizationViewer<SysElement, Float> createVisualizationViewerBySysRoot(
+	public static VisualizationViewer<IElement, Object> createVisualizationViewerBySysRoot(
 			SysRoot root, int deltaX, int deltaY) {
-		DelegateTree<SysElement, Float> delegateTree = new  DelegateTree<SysElement, Float>();
+		DelegateTree<IElement, Object> delegateTree = new  DelegateTree<IElement, Object>();
 		delegateTree.addVertex(root);
 		delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
-		DelegateForest<SysElement, Float> delegateForest = new DelegateForest<SysElement, Float>(delegateTree);
-		VisualizationViewer<SysElement, Float> visualizationViewer = new VisualizationViewer<SysElement, Float>(
-				new TreeLayout<SysElement, Float>(
+		DelegateForest<IElement, Object> delegateForest = new DelegateForest<IElement, Object>(delegateTree);
+		VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(
+				new TreeLayout<IElement, Object>(
 						delegateForest, deltaX, deltaY));
 		return visualizationViewer;
 	}

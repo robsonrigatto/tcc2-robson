@@ -2,9 +2,11 @@ package model;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.StringTokenizer;
 
-public class SysRoot implements SysElement{
+public class SysRoot implements SysElement {
+	
 	private String pathToBin;
 	private HashMap<String, SysPackage> packages = new HashMap<String, SysPackage>();
 
@@ -128,7 +130,8 @@ public class SysRoot implements SysElement{
 	}
 
 	
-	public void setOwner(SysElement e) {
+	public void setOwner(IElement e) {
+		
 	}
 
 	
@@ -147,7 +150,7 @@ public class SysRoot implements SysElement{
 	}
 
 	
-	public HashSet<SysElement> getChildElements() {
+	public Set<IElement> getChildElements() {
 		return null;
 	}
 
@@ -168,7 +171,7 @@ public class SysRoot implements SysElement{
 		return e;
 	}
 
-  public void add(SysElement e) {
+  public void addChild(IElement e) {
 		if(e instanceof SysPackage){
 			add((SysPackage)e);
 		}

@@ -10,6 +10,7 @@ import java.awt.Container;
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
+import model.IElement;
 import model.SysElement;
 import model.SysMethod;
 import model.SysRoot;
@@ -41,9 +42,8 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 		this.m=m;
 		this.root=root;
 		CallChainM2G cc = new CallChainM2G();
-		VisualizationViewer<SysElement,Float> vv;
-		AggregateLayout<SysElement, Float> al = cc.doAggregateLayout(root,m); 
-		vv = new CallChainM2G().makeVV(al);
+		AggregateLayout<IElement, Object> al = cc.doAggregateLayout(root,m); 
+		VisualizationViewer<IElement,Object> vv = new CallChainM2G().makeVV(al);
 		this.add(vv);
 		SysUtils.makeGoodVisual(vv, this);
 		makeMenuBar(vv);
@@ -63,13 +63,12 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 		super("CallChain >>> "+m);
 		this.m=m;
 		this.root=root;
-		VisualizationViewer<SysElement,Float> vv;
 		if(b){
 			recur(root,m);
 		}
 		CallChainM2G cc = new CallChainM2G();
-		AggregateLayout<SysElement, Float> al = cc.doAggregateLayout(root,m); 
-		vv = new CallChainM2G().makeVV(al);
+		AggregateLayout<IElement, Object> al = cc.doAggregateLayout(root,m); 
+		VisualizationViewer<IElement,Object> vv = new CallChainM2G().makeVV(al);
 		this.add(vv);
 		SysUtils.makeGoodVisual(vv, this);
 		makeMenuBar(vv);
@@ -116,13 +115,13 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 	}
 
 	
-	public void makeGoodVisual(VisualizationViewer<SysElement, Float> vv) {
+	public void makeGoodVisual(VisualizationViewer<IElement, Object> vv) {
 		SysUtils.makeGoodVisual(vv, this);
 	}
 
 	
 	/**makes a menu bar given a visualization viewer*/
-	public void makeMenuBar(VisualizationViewer<SysElement, Float> vv) {
+	public void makeMenuBar(VisualizationViewer<IElement, Object> vv) {
 		SysUtils.makeMenuBar(vv, this, this.root);
 
 	}

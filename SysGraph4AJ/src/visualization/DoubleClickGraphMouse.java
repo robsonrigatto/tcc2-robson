@@ -13,6 +13,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
+import model.IElement;
 import model.SysClass;
 import model.SysElement;
 import model.SysMethod;
@@ -41,14 +42,14 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	private static final int MAINWINDOW_INDICATOR = 2;
 	private long lastTimeClicked=0l;
 	private long doubleClickTime = 400l;
-	private SysRoot sysRoot;
+	private IElement root;
 	private GUIWindowInterface windowInterface;
 	private int deltaX = 100;
 	private int deltaY = 80;
 
 
-	public DoubleClickGraphMouse(GUIWindowInterface f, SysRoot r){
-		this.sysRoot = r;
+	public DoubleClickGraphMouse(GUIWindowInterface f, IElement r){
+		this.root = r;
 		this.windowInterface = f;
 	}
 
@@ -69,14 +70,14 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 				final SysMethod m = (SysMethod)vertex;
 				popup.add(new AbstractAction("View Call Chain"){
 					public void actionPerformed(ActionEvent arg0) {
-						CallChainWindow w = new CallChainWindow(m, sysRoot);
+						CallChainWindow w = new CallChainWindow(m, (SysRoot) root);
 						w.setVisible(true);
 					}
 				});
 				popup.add(new AbstractAction("View Call Chain analysing methods recursively"){
 
 					public void actionPerformed(ActionEvent arg0) {
-						CallChainWindow w2 = new CallChainWindow(m,sysRoot,true);
+						CallChainWindow w2 = new CallChainWindow(m,(SysRoot) root,true);
 						w2.setVisible(true);
 					}
 				});
@@ -134,7 +135,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 				if(vertex instanceof SysPackage && !((SysPackage) vertex).isAnalysed()) {
 					String fullPath = File.separatorChar + ((SysPackage)vertex).getFullyQualifiedName();
 					fullPath = fullPath.replace(".", File.separator);
-					fullPath = this.sysRoot.getPath()+fullPath;
+					fullPath = ((SysRoot)this.root).getPath()+fullPath;
 					if(fullPath.contains(File.separator + File.separator)) {
 						JOptionPane.showMessageDialog(null, "filePath has two File.separator.");
 					}	
@@ -143,13 +144,13 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 					isWorkingOnVisualizationViewer = true;
 				} else if(vertex instanceof SysClass && !((SysClass) vertex).isAnalysed()){
 					SysClass c = ((SysClass)vertex);
-					c = ClassAnalysis2.analyseClass(c, this.sysRoot);
+					c = ClassAnalysis2.analyseClass(c, (SysRoot) this.root);
 					c.setIsAnalysed(true);
 					isWorkingOnVisualizationViewer = true;
 				} else {
 					if(vertex instanceof SysMethod && !((SysMethod)vertex).isAnalysed()){
 						SysMethod m = ((SysMethod)vertex);
-						MethodAnalysis.analyseMethod(m, this.sysRoot);
+						MethodAnalysis.analyseMethod(m, (SysRoot) this.root);
 						m.setIsAnalysed(true);
 						isWorkingOnVisualizationViewer = true;
 					}
@@ -169,22 +170,22 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 					}
 					if(indicator == CALLCAIN_INDICATOR) {
 						CallChainM2G cc = new CallChainM2G();
-						AggregateLayout al = cc.doAggregateLayout(sysRoot,((CallChainWindow)c).getM());
-						VisualizationViewer<SysElement, Float> vv_callchain = cc.makeVV(al);
+						AggregateLayout al = cc.doAggregateLayout((SysRoot) root,((CallChainWindow)c).getM());
+						VisualizationViewer<IElement, Object> vv_callchain = cc.makeVV(al);
 						this.windowInterface.setCenterPanel(vv_callchain);
 						this.windowInterface.makeGoodVisual(vv_callchain);
 					} else {
-						DelegateTree<SysElement, Float> delegateTree = new  DelegateTree<SysElement, Float>();
-						delegateTree.addVertex(this.sysRoot);
-						delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, this.sysRoot);
-						DelegateForest<SysElement, Float> delegateForest = ModelToGraph.tree_to_forest(delegateTree);
-						AggregateLayout aggregateLayout = new AggregateLayout(new TreeLayout<SysElement, Float>(delegateForest, this.deltaX, this.deltaY));
+						DelegateTree<IElement, Object> delegateTree = new  DelegateTree<IElement, Object>();
+						delegateTree.addVertex(this.root);
+						delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, (SysRoot) this.root);
+						DelegateForest<IElement, Object> delegateForest = ModelToGraph.tree_to_forest(delegateTree);
+						AggregateLayout aggregateLayout = new AggregateLayout(new TreeLayout<IElement, Object>(delegateForest, this.deltaX, this.deltaY));
 						VisualizationViewer anotherVisualizationViewer = new VisualizationViewer<SysElement, Float>(aggregateLayout);
 						this.windowInterface.setCenterPanel(anotherVisualizationViewer);
 						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
-						this.windowInterface.makeGoodVisual((VisualizationViewer<SysElement, Float>) this.windowInterface.getCenter());
-						this.windowInterface.makeMenuBar((VisualizationViewer<SysElement, Float>) this.windowInterface.getCenter());
-						EspecialEdgesTable<SysElement, Float> et = ModelToGraph.getEspecialEdges(this.sysRoot, delegateForest);
+						this.windowInterface.makeGoodVisual((VisualizationViewer<IElement, Object>) this.windowInterface.getCenter());
+						this.windowInterface.makeMenuBar((VisualizationViewer<IElement, Object>) this.windowInterface.getCenter());
+						EspecialEdgesTable<IElement, Object> et = ModelToGraph.getEspecialEdges((SysRoot) this.root, delegateForest);
 						ModelToGraph.addEspecialEdges(delegateForest, et);
 						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
 						this.windowInterface.getTextArea().append("Analysing: "+vertex.toString()+"\n");

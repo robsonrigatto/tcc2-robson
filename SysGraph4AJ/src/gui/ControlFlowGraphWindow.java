@@ -6,20 +6,20 @@ import edu.uci.ics.jung.graph.DelegateForest;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import graph.ControlFlowGraphBuilder;
-import graph.ControlFlowGraphNode;
-import graph.util.ControlFlowGraphUtils;
+import graph.model.ControlFlowGraphEdge;
+import graph.model.ControlFlowGraphEdgeType;
+import graph.model.ControlFlowGraphNode;
 
 import java.awt.Container;
-import java.util.List;
-import java.util.Random;
+import java.util.Set;
 
 import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
-import org.apache.bcel.generic.InstructionHandle;
-
-import model.SysElement;
+import model.IElement;
 import model.SysMethod;
+
+import org.apache.bcel.generic.InstructionHandle;
 
 public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface {
 
@@ -40,22 +40,22 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 
 		ControlFlowGraphNode root = CONTROL_FLOW_GRAPH_BUILDER.build(m.getMethod());
 
-		DelegateForest<ControlFlowGraphNode, Float> df = new DelegateForest<ControlFlowGraphNode, Float>();
-		DelegateTree<ControlFlowGraphNode, Float> delegateTree = new  DelegateTree<ControlFlowGraphNode, Float>();
+		DelegateForest<IElement, Object> df = new DelegateForest<IElement, Object>();
+		DelegateTree<IElement, Object> delegateTree = new DelegateTree<IElement, Object>();
 
 		this.addChildToGraph(root, delegateTree);
 		
 		df.addTree(delegateTree);
 		
-		VisualizationViewer<ControlFlowGraphNode, Float> visualizationViewer = new VisualizationViewer<ControlFlowGraphNode, Float>(
-				new TreeLayout<ControlFlowGraphNode, Float>(
+		VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(
+				new TreeLayout<IElement, Object>(
 						df, 100, 80));
 		
-		ControlFlowGraphUtils.makeGoodVisual(visualizationViewer, this);
+		SysUtils.makeGoodVisual(visualizationViewer, this);
 		visualizationViewer.setSize(this.getSize());
-		AggregateLayout<ControlFlowGraphNode, Float> al = new AggregateLayout<ControlFlowGraphNode, Float>(new TreeLayout<ControlFlowGraphNode, Float>(df, 100, 80));
-		ControlFlowGraphUtils.setAtCenter(root, al, this, visualizationViewer);
-		ControlFlowGraphUtils.makeMenuBar(visualizationViewer, this, root);
+		AggregateLayout<IElement, Object> al = new AggregateLayout<IElement, Object>(new TreeLayout<IElement, Object>(df, 100, 80));
+		SysUtils.setAtCenter(root, al, this, visualizationViewer);
+		SysUtils.makeMenuBar(visualizationViewer, this, root);
 
 		this.addReferenceEdges(root, df);
 		
@@ -63,33 +63,30 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 		this.pack();
 	}
 
-	private void addChildToGraph(ControlFlowGraphNode root, DelegateTree<ControlFlowGraphNode, Float> delegateTree) {
-		Random r = new Random();
-
+	private void addChildToGraph(ControlFlowGraphNode root, DelegateTree<IElement, Object> delegateTree) {
 		if(delegateTree.getVertexCount() == 0) {
 			delegateTree.addVertex(root);
 		}
 
-		List<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
+		Set<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
 		for(ControlFlowGraphNode childNode : childNodes) {
-
+	
 			if(!childNode.isReference() && !delegateTree.containsVertex(childNode)) {
-
-				delegateTree.addChild((float) r.nextDouble(), root, childNode);
+				ControlFlowGraphEdge edge = new ControlFlowGraphEdge(root, childNode, ControlFlowGraphEdgeType.DEFAULT);
+				delegateTree.addChild(edge, root, childNode);
 				this.addChildToGraph(childNode, delegateTree);
 
 			}
 		}
 	}
 
-	private void addReferenceEdges(final ControlFlowGraphNode root, DelegateForest<ControlFlowGraphNode, Float> delegateForest) {
-		Random r = new Random();
+	private void addReferenceEdges(final ControlFlowGraphNode root, DelegateForest<IElement, Object> delegateForest) {
+		Set<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
 
-		List<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
 		for(ControlFlowGraphNode childNode : childNodes) {
 
-			if(childNode.isReference()) {
-				ControlFlowGraphNode parentNode = root.getParentNode();
+			if(childNode.isReference() && root.getOwner() != null) {
+				ControlFlowGraphNode parentNode = (ControlFlowGraphNode) root.getOwner();
 				
 				ControlFlowGraphNode referencedNode = null;
 				boolean referenceFound = false;
@@ -106,12 +103,14 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 					}		
 					
 					if(!referenceFound) {
-						parentNode = parentNode.getParentNode();
+						parentNode = (ControlFlowGraphNode) parentNode.getOwner();
 					}
 					
 				} while(parentNode != null && !referenceFound);
 				if(referenceFound) {
-					delegateForest.addEdge((float) r.nextDouble(), childNode.getParentNode(), referencedNode);
+					ControlFlowGraphNode parentNodeFromChild = (ControlFlowGraphNode) childNode.getOwner();
+					ControlFlowGraphEdge edge = new ControlFlowGraphEdge(parentNodeFromChild, referencedNode, ControlFlowGraphEdgeType.DEFAULT);
+					delegateForest.addEdge(edge, parentNodeFromChild, referencedNode);
 				}
 			} else {
 				this.addReferenceEdges(childNode, delegateForest);
@@ -151,13 +150,13 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 	}
 
 	@Override
-	public void makeGoodVisual(VisualizationViewer<SysElement, Float> vv) {
+	public void makeGoodVisual(VisualizationViewer<IElement, Object> vv) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void makeMenuBar(VisualizationViewer<SysElement, Float> vv) {
+	public void makeMenuBar(VisualizationViewer<IElement, Object> vv) {
 		// TODO Auto-generated method stub
 
 	}

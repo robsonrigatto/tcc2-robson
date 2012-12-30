@@ -3,12 +3,12 @@ package model;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.HashSet;
-import org.aspectj.lang.annotation.Before;
+
+import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.AfterThrowing;
-import org.aspectj.lang.annotation.After;
 import org.aspectj.lang.annotation.Around;
-
+import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 
 /**remember, VERY IMPORTANT.: A piece of advice never has the same name of another one. */
@@ -121,9 +121,9 @@ public class SysAdvice extends SysMethod{
 	/**@return true if and only if a given method is actually an advice*/
 	public static boolean isAdvice(SysMethod dependency) {
 		if(dependency!=null && dependency.getName().contains("ajc$")) return true;
-		SysElement e=dependency;
+		IElement e=dependency;
 		while(e!=null){
-			e=e.getOwner();
+			e = e.getOwner();
 			if(e instanceof SysAspect) return true;
 		}
 	  return false;

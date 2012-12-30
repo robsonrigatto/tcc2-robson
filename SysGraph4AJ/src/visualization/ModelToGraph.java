@@ -2,10 +2,11 @@ package visualization;
 
 import java.util.Vector;
 
-import model.SysElement;
+import model.IElement;
 import model.SysAdvice;
 import model.SysAspect;
 import model.SysClass;
+import model.SysElement;
 import model.SysMethod;
 import model.SysPackage;
 import model.SysRoot;
@@ -17,22 +18,22 @@ import edu.uci.ics.jung.graph.util.Pair;
 
 public class ModelToGraph {
 
-	public static DelegateTree<SysElement, Float> delegateTree_justFirstChildren(SysElement root) {
-		DelegateTree<SysElement, Float> dt = new DelegateTree<SysElement, Float>();
+	public static DelegateTree<IElement, Float> delegateTree_justFirstChildren(IElement root) {
+		DelegateTree<IElement, Float> dt = new DelegateTree<IElement, Float>();
 		dt.addVertex(root);
-		for(SysElement e : root.getChildElements())
+		for(IElement e : root.getChildElements())
 			dt.addChild((float)dt.getEdgeCount(), root, e);
 				return dt;
 	}
 
-	public static DelegateTree<SysElement, Float> delegateTree_fullGraph(SysElement root) {
-		DelegateTree<SysElement, Float> dt = new DelegateTree<SysElement, Float>();
+	public static DelegateTree<IElement, Object> delegateTree_fullGraph(IElement root) {
+		DelegateTree<IElement, Object> dt = new DelegateTree<IElement, Object>();
 		dt.addVertex(root);
 		dt = putAllChildren(dt, root);
 		return dt;
 	}
 
-	public static DelegateTree<SysElement, Float> putAllChildren_SysRoot(DelegateTree<SysElement, Float> dt, SysRoot e){
+	public static DelegateTree<IElement, Object> putAllChildren_SysRoot(DelegateTree<IElement, Object> dt, SysRoot e){
 		if(e != null){
 			for(SysElement e1 : e.getPackages()){
 				dt.addChild((float)dt.getEdgeCount(), e, e1);
@@ -42,9 +43,9 @@ public class ModelToGraph {
 		return dt;
 	}
 
-	public static DelegateTree<SysElement, Float> putAllChildren(DelegateTree<SysElement, Float> dt, SysElement e){
+	public static DelegateTree<IElement, Object> putAllChildren(DelegateTree<IElement, Object> dt, IElement e){
 		if(e!=null){
-			for(SysElement e1 : e.getChildElements()){
+			for(IElement e1 : e.getChildElements()){
 				dt.addChild((float)dt.getEdgeCount(), e, e1);
 				dt = putAllChildren(dt, e1);
 			}
@@ -52,9 +53,9 @@ public class ModelToGraph {
 		return dt;
 	}
 
-	public static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysRoot r, Graph g){
+	public static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysRoot r, Graph g){
 		if(r!=null){
-			EspecialEdgesTable<SysElement, Float> et = new EspecialEdgesTable<SysElement, Float>();
+			EspecialEdgesTable<IElement, Object> et = new EspecialEdgesTable<IElement, Object>();
 			for(SysPackage p : r.getPackages()){
 				et.add(getEspecialEdges(p,g));
 			}
@@ -63,9 +64,9 @@ public class ModelToGraph {
 		else return null;
 	}
 
-	private static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysPackage pack, Graph g) {
+	private static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysPackage pack, Graph g) {
 		if(pack!=null){
-			EspecialEdgesTable<SysElement, Float> et = new EspecialEdgesTable<SysElement, Float>();
+			EspecialEdgesTable<IElement, Object> et = new EspecialEdgesTable<IElement, Object>();
 			for(SysPackage p : pack.getPackages()){
 				et.add(getEspecialEdges(p,g));
 			}
@@ -80,18 +81,18 @@ public class ModelToGraph {
 		return null;
 	}
 
-	private static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysAspect c, Graph g) {
-		EspecialEdgesTable<SysElement, Float> e = getEspecialEdges((SysClass) c, g);
-		if(e==null) e = new EspecialEdgesTable<SysElement, Float>();
+	private static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysAspect c, Graph g) {
+		EspecialEdgesTable<IElement, Object> e = getEspecialEdges((SysClass) c, g);
+		if(e==null) e = new EspecialEdgesTable<IElement, Object>();
 		for(SysAdvice ad : c.getAdvice()){
 			e.add(getEspecialEdges(ad,g));
 		}
 		return e;
 	}
 
-	private static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysClass c, Graph g) {
+	private static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysClass c, Graph g) {
 		if(c!=null){
-			EspecialEdgesTable<SysElement, Float> et = new EspecialEdgesTable<SysElement, Float>();
+			EspecialEdgesTable<IElement, Object> et = new EspecialEdgesTable<IElement, Object>();
 			for(SysMethod m : c.getMethods()){
 				et.add(getEspecialEdges(m,g));
 			}
@@ -100,9 +101,9 @@ public class ModelToGraph {
 		return null;
 	}
 
-	private static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysMethod m, Graph g) {
+	private static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysMethod m, Graph g) {
 		if(m!=null){
-			EspecialEdgesTable<SysElement, Float> et = new EspecialEdgesTable<SysElement, Float>();
+			EspecialEdgesTable<IElement, Object> et = new EspecialEdgesTable<IElement, Object>();
 			for(SysMethod s : m.getCalls()){
 				et.add((float)g.getEdgeCount()+1,m,s);
 			}
@@ -111,27 +112,27 @@ public class ModelToGraph {
 		return null;
 	}
 
-	private static EspecialEdgesTable<SysElement, Float> getEspecialEdges(SysAdvice m, Graph g) {
-		EspecialEdgesTable<SysElement, Float> e = getEspecialEdges((SysMethod)m,g);
-		if(e==null) e= new EspecialEdgesTable<SysElement,Float>();
+	private static EspecialEdgesTable<IElement, Object> getEspecialEdges(SysAdvice m, Graph g) {
+		EspecialEdgesTable<IElement, Object> e = getEspecialEdges((SysMethod)m,g);
+		if(e==null) e= new EspecialEdgesTable<IElement,Object>();
 		for(SysMethod me: m.getAffecteds()){
 			e.add((float)g.getEdgeCount()+1, m, me);
 		}
 		return e;
 	}
 
-	public static void addEspecialEdges(Forest<SysElement, Float> f, EspecialEdgesTable<SysElement, Float> et){
+	public static void addEspecialEdges(Forest<IElement, Object> f, EspecialEdgesTable<IElement, Object> et){
 		if(et!=null && f!=null){
-			Vector<SysElement> from = et.getFrom();
-			Vector<SysElement> to = et.getTo();
-			Vector<Float> edge = et.getEdge();
+			Vector<IElement> from = et.getFrom();
+			Vector<IElement> to = et.getTo();
+			Vector<Object> edge = et.getEdge();
 			for(int i=0;i<edge.size();i++){
 				f.addEdge((float)f.getEdgeCount()+1.5f, from.get(i), to.get(i));
 			}
 		}else System.err.println("et==null || f==null");
 	}
 
-	public static DelegateForest<SysElement, Float> tree_to_forest(DelegateTree dt){
+	public static DelegateForest<IElement, Object> tree_to_forest(DelegateTree dt){
 		if(dt==null)return null;
 		DelegateForest df = new DelegateForest();
 		for(Object v1 : dt.getVertices()){

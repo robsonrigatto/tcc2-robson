@@ -86,7 +86,7 @@ public class ClassAnalysis2 {
 					SysMethod m=null;
 					if(name.contains("ajc$")){
 						if(name.contains("ajc$pointcut")){
-							c.add(new SysPointcut(meth));//its a pointcut
+							c.addChild(new SysPointcut(meth));//its a pointcut
 						} else {
 							m= new SysAdvice(meth); //its an Advice
 						}

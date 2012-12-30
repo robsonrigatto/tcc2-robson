@@ -2,10 +2,9 @@ package model;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Set;
 
-
-
-public class SysClass implements SysElement{
+public class SysClass implements SysElement {
 
 	private HashSet<SysClass> interfaces = new HashSet<SysClass>();
 	private HashMap<String, SysField> fields = new HashMap<String, SysField>();
@@ -22,7 +21,7 @@ public class SysClass implements SysElement{
 	}
 
 
-	public void add(SysElement e) {
+	public void addChild(IElement e) {
 		if(e instanceof SysClass){
 			add((SysClass)e);
 		} else {
@@ -131,8 +130,8 @@ public class SysClass implements SysElement{
 	}
 
 	/**get all child elements, it's inner classes, fileds and methods*/
-	public HashSet<SysElement> getChildElements(){
-		HashSet<SysElement> hs = new HashSet<SysElement>();
+	public Set<IElement> getChildElements(){
+		Set<IElement> hs = new HashSet<IElement>();
 		hs.addAll(fields.values());
 		hs.addAll(innerClasses.values());
 		hs.addAll(methods.values());
@@ -169,7 +168,7 @@ public class SysClass implements SysElement{
 	public SysElement getOwner() {
 		return owner;
 	}
-
+	
 	/**if there's a super class, get it*/
 	public SysClass getSuperClass() {
 		return this.superClass;
@@ -194,8 +193,8 @@ public class SysClass implements SysElement{
 	}
 
 	/**sets the owner of this SysClass*/
-	public void setOwner(SysElement e) {
-		owner = e;
+	public void setOwner(IElement e) {
+		owner = (SysElement) e;
 	}
 
 	/**Sets the superClass*/
