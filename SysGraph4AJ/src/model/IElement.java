@@ -12,6 +12,6 @@ public interface IElement {
 	
 	/**gets all the child elements of this element. It may return an empty hash if there are no child element,
 	 * even for this element can not hold a child or it hasn't one*/
-	public Set<IElement> getChildElements();
+	public Set<? extends IElement> getChildElements();
 
 }

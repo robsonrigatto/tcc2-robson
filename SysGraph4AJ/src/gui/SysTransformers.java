@@ -50,8 +50,9 @@ public class SysTransformers {
 				}
 			} else if(arg0 instanceof ControlFlowGraphEdge) {
 				ControlFlowGraphEdge edge = (ControlFlowGraphEdge) arg0;
-				ControlFlowGraphEdgeType edgeType = edge.getParentNode().getChildTypeByNode(edge.getChildNode());
-				return edgeType != null ? edgeType.name() : ControlFlowGraphEdgeType.GOTO.name();
+				ControlFlowGraphEdgeType edgeType = edge.getEdgeType();
+				return edgeType == null || ControlFlowGraphEdgeType.REFERENCE.equals(edgeType) ? 
+						ControlFlowGraphEdgeType.GOTO.name() : edgeType.toString();
 			}
 			return "";
 		}
@@ -76,7 +77,8 @@ public class SysTransformers {
 				return Color.GRAY;
 			
 			if(arg0 instanceof ControlFlowGraphNode) {
-				return Color.darkGray;
+				ControlFlowGraphNode node = (ControlFlowGraphNode) arg0;
+				return node.isReference() ? Color.GREEN : node.isTryStatement() ? Color.BLUE : Color.ORANGE;
 			}
 			
 			return Color.BLUE;

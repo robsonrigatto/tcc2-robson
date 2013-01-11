@@ -7,10 +7,10 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import graph.ControlFlowGraphBuilder;
 import graph.model.ControlFlowGraphEdge;
-import graph.model.ControlFlowGraphEdgeType;
 import graph.model.ControlFlowGraphNode;
 
 import java.awt.Container;
+import java.util.Iterator;
 import java.util.Set;
 
 import javax.swing.JFrame;
@@ -47,32 +47,31 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 		
 		df.addTree(delegateTree);
 		
-		VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(
-				new TreeLayout<IElement, Object>(
-						df, 100, 80));
+		AggregateLayout<IElement, Object> al = new AggregateLayout<IElement, Object>(new TreeLayout<IElement, Object>(df, 100, 100));
+		VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(al);
+		this.setCenterPanel(visualizationViewer);
+		this.getFrame().setBounds(300, 300, 800, 500);
 		
 		SysUtils.makeGoodVisual(visualizationViewer, this);
-		visualizationViewer.setSize(this.getSize());
-		AggregateLayout<IElement, Object> al = new AggregateLayout<IElement, Object>(new TreeLayout<IElement, Object>(df, 100, 80));
-		SysUtils.setAtCenter(root, al, this, visualizationViewer);
 		SysUtils.makeMenuBar(visualizationViewer, this, root);
-
+		
 		this.addReferenceEdges(root, df);
 		
 		this.add(visualizationViewer);
 		this.pack();
 	}
 
+	@SuppressWarnings("unchecked")
 	private void addChildToGraph(ControlFlowGraphNode root, DelegateTree<IElement, Object> delegateTree) {
 		if(delegateTree.getVertexCount() == 0) {
 			delegateTree.addVertex(root);
 		}
 
-		Set<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
+		Set<ControlFlowGraphNode> childNodes = (Set<ControlFlowGraphNode>) root.getChildElements(); 
 		for(ControlFlowGraphNode childNode : childNodes) {
-	
+			
 			if(!childNode.isReference() && !delegateTree.containsVertex(childNode)) {
-				ControlFlowGraphEdge edge = new ControlFlowGraphEdge(root, childNode, ControlFlowGraphEdgeType.DEFAULT);
+				ControlFlowGraphEdge edge = new ControlFlowGraphEdge(root, childNode, root.getChildTypeByNode(childNode));
 				delegateTree.addChild(edge, root, childNode);
 				this.addChildToGraph(childNode, delegateTree);
 
@@ -80,11 +79,14 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private void addReferenceEdges(final ControlFlowGraphNode root, DelegateForest<IElement, Object> delegateForest) {
-		Set<ControlFlowGraphNode> childNodes = root.getChildNodes(); 
+		Iterator<ControlFlowGraphNode> childNodes = (Iterator<ControlFlowGraphNode>) root.getChildElements().iterator(); 
 
-		for(ControlFlowGraphNode childNode : childNodes) {
+		while(childNodes.hasNext()) {
 
+			ControlFlowGraphNode childNode = childNodes.next();
+			
 			if(childNode.isReference() && root.getOwner() != null) {
 				ControlFlowGraphNode parentNode = (ControlFlowGraphNode) root.getOwner();
 				
@@ -93,9 +95,12 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 				InstructionHandle instructionToBeReferenced = childNode.getInstructions().get(0);
 				
 				do {
-					for(ControlFlowGraphNode childNodesToCheck : parentNode.getChildNodes()) {
+					for(ControlFlowGraphNode childNodesToCheck : parentNode.getChildNodes().keySet()) {
 						
-						if(childNodesToCheck.getInstructions().contains(instructionToBeReferenced)) {
+						if(!childNodesToCheck.isReference() 
+						&& !childNodesToCheck.getInstructions().isEmpty() 
+						&& childNodesToCheck.getInstructions().get(0).equals(instructionToBeReferenced)
+						&& !childNodesToCheck.isTryStatement()) {
 							referenceFound = true;
 							referencedNode = childNodesToCheck;
 							break;
@@ -107,10 +112,14 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 					}
 					
 				} while(parentNode != null && !referenceFound);
+				
 				if(referenceFound) {
 					ControlFlowGraphNode parentNodeFromChild = (ControlFlowGraphNode) childNode.getOwner();
-					ControlFlowGraphEdge edge = new ControlFlowGraphEdge(parentNodeFromChild, referencedNode, ControlFlowGraphEdgeType.DEFAULT);
-					delegateForest.addEdge(edge, parentNodeFromChild, referencedNode);
+					ControlFlowGraphEdge edge = new ControlFlowGraphEdge(parentNodeFromChild, referencedNode, parentNodeFromChild.getChildTypeByNode(childNode));
+					
+					if(!parentNodeFromChild.equals(referencedNode)) {
+						delegateForest.addEdge(edge, parentNodeFromChild, referencedNode);
+					}
 				}
 			} else {
 				this.addReferenceEdges(childNode, delegateForest);

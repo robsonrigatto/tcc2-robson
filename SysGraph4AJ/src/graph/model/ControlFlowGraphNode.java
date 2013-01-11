@@ -17,9 +17,9 @@ public class ControlFlowGraphNode implements IElement {
 	
 	private Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> childNodes;
 	
-	private boolean tryStatement;
+	private Boolean tryStatement;
 	
-	private boolean isReference;
+	private Boolean isReference;
 	
 	private ControlFlowGraphNode parentNode;
 	
@@ -43,27 +43,37 @@ public class ControlFlowGraphNode implements IElement {
 	 * adiciona um nó filho no grafo.
 	 */
 	public void addChildNode(ControlFlowGraphNode childNode, ControlFlowGraphEdgeType edgeType) {
-		this.childNodes.put(childNode, edgeType);
-		childNode.setOwner(this);
+		if(childNode != null) {
+			this.childNodes.put(childNode, edgeType);
+			childNode.setOwner(this);
+		}
 	}
 
-	public Set<ControlFlowGraphNode> getChildNodes() {
-		return childNodes.keySet();
+	public Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> getChildNodes() {
+		return childNodes;
 	}
 	
-	public boolean isTryStatement() {
+	public void setChildNodes(Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> childNodes) {
+		this.childNodes = childNodes;
+		
+		for(ControlFlowGraphNode childNode : this.childNodes.keySet()) {
+			childNode.setOwner(this);
+		}
+	}
+
+	public Boolean isTryStatement() {
 		return tryStatement;
 	}
 
-	public void setTryStatement(boolean tryStatement) {
+	public void setTryStatement(Boolean tryStatement) {
 		this.tryStatement = tryStatement;
 	}
 
-	public boolean isReference() {
+	public Boolean isReference() {
 		return isReference;
 	}
 
-	public void setReference(boolean isReference) {
+	public void setReference(Boolean isReference) {
 		this.isReference = isReference;
 	}
 
@@ -76,55 +86,10 @@ public class ControlFlowGraphNode implements IElement {
 	}
 
 	@Override
-	public String toString() {		
-//		if(this.instructions.size() == 0) {
-//			return "";
-//		}
-//		
-//		StringBuffer sb = new StringBuffer("[");
-//		for(InstructionHandle instruction : this.instructions) {
-//			sb.append(instruction.getPosition()).append(", ");
-//		}
-//		
-//		String str = sb.toString();
-//		
-//		return str.substring(0, str.length() - 2).concat("]");
-		
-		return this.instructions.size() == 0 ? "" : 
+	public String toString() {				
+		return this.instructions.size() == 0 || this.tryStatement ? "" : 
 			new StringBuffer("[").append(this.instructions.get(0).getPosition()).append("]").toString();
 	}
-
-//	@Override
-//	public int hashCode() {
-//		final int prime = 31;
-//		int result = 1;
-//		result = prime * result
-//				+ ((instructions == null || instructions.size() == 0) ? 0 : instructions.get(0).hashCode());
-//		return result;
-//	}
-//
-//	@Override
-//	public boolean equals(Object obj) {
-//		if (this == obj)
-//			return true;
-//		if (obj == null)
-//			return false;
-//		if (getClass() != obj.getClass())
-//			return false;
-//		ControlFlowGraphNode other = (ControlFlowGraphNode) obj;
-//		if (instructions == null) {
-//			if (other.instructions != null)
-//				return false;
-//		} else if (instructions.size() == 0 && other.instructions.size() == 0) {
-//			return true;
-//		} else if(!(instructions.size() > 0 && other.instructions.size() > 0)) 
-//			return false;
-//		
-//		InstructionHandle instructionHandle = instructions.get(0);
-//		InstructionHandle otherInstructionHandle = other.instructions.get(0);
-//		
-//		return instructionHandle.getPosition() == otherInstructionHandle.getPosition();
-//	}
 
 	@Override
 	public int hashCode() {
@@ -132,6 +97,8 @@ public class ControlFlowGraphNode implements IElement {
 		int result = 1;
 		result = prime * result
 				+ ((instructions == null) ? 0 : instructions.hashCode());
+		result = prime * result
+				+ ((tryStatement == null) ? 0 : tryStatement.hashCode());
 		return result;
 	}
 
@@ -149,19 +116,22 @@ public class ControlFlowGraphNode implements IElement {
 				return false;
 		} else if (!instructions.equals(other.instructions))
 			return false;
+		if (tryStatement == null) {
+			if (other.tryStatement != null)
+				return false;
+		} else if (!tryStatement.equals(other.tryStatement))
+			return false;
 		return true;
 	}
 
 	@Override
 	public void addChild(IElement e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public Set<IElement> getChildElements() {
-		// TODO Auto-generated method stub
-		return null;
+	public Set<? extends IElement> getChildElements() {
+		return this.getChildNodes().keySet();
 	}
 	
 	public ControlFlowGraphEdgeType getChildTypeByNode(ControlFlowGraphNode childNode) {

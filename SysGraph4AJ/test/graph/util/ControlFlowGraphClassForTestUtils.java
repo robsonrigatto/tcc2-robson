@@ -4,7 +4,10 @@ public class ControlFlowGraphClassForTestUtils {
 
 	public String ifElseMethod(int numero) {
 		int i = numero;
-		return i == 1 ? "um" : "zero";
+		if(i == 1) {
+			return "um";
+		}
+		return "zero";
 	}
 
 	public void forMethod(String algumaCoisa){
@@ -39,13 +42,23 @@ public class ControlFlowGraphClassForTestUtils {
 		try {
 			int i = 1;
 			System.out.println(i);
+			
 			try {
-				System.out.println("ndosa");
-			} catch(Throwable t) {
-				t.printStackTrace();
+				System.out.println(i-1);
 			}
+			catch(StackOverflowError h) {
+				//
+			}
+			
+			catch(Exception e) {
+				e.printStackTrace();
+			}
+			
 		} catch(NullPointerException e) {
 			e.printStackTrace();
+			
+		} catch(ArrayIndexOutOfBoundsException f) {
+			System.out.println("erro");
 		}
 		finally {
 			System.out.println("dnsoa");
