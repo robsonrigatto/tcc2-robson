@@ -37,15 +37,15 @@ import edu.uci.ics.jung.visualization.transform.MutableTransformer;
  */
 
 public class SysUtils {
-	
+
 	private static final SysTransformers TRANSFORMERS = new SysTransformers();
-	
+
 	/**
 	 * Sets the given container and puts it in the center of the GUIWindow*/
 	public static void setCenter(Container center, GUIWindowInterface target) {
 		target.setCenter(center);
 	}
-	
+
 	/**@return the text area of the GUIWindow...it may be a hidden text area....*/
 	public static JTextArea getTextArea(GUIWindowInterface target){
 		return target.getTextArea();
@@ -65,7 +65,7 @@ public class SysUtils {
 			vv.updateUI();
 		}
 	}
-	
+
 	/**
 	 * Makes a good visual, i.e., set transformers to put color in the graph, set names, and tooltip*/
 	public static void makeGoodVisual(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target){
@@ -74,61 +74,62 @@ public class SysUtils {
 		rc.setEdgeStrokeTransformer(TRANSFORMERS.getEdgeStrokeTransformer());		//edge type
 		rc.setVertexLabelTransformer(TRANSFORMERS.getVertexToString());		//vertex label
 		rc.setEdgeLabelTransformer(TRANSFORMERS.getEdgeToString());			//edge label
+		rc.setEdgeShapeTransformer(TRANSFORMERS.getEdgeShape());
 		vv.setVertexToolTipTransformer(TRANSFORMERS.getToolTip());
 		vv.getRenderer().getVertexLabelRenderer().setPosition(Position.AUTO);
 		/*care about the mouse plugin*/
 		target.makeMenuBar(vv);
-	}
-	
-	/**
-	 * makes a menu bar for the GUI, based on the VV*/
-	public static void makeMenuBar(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target, IElement r){
-		DoubleClickGraphMouse<IElement, Object> gm = new DoubleClickGraphMouse<IElement, Object>(target, r);
-		vv.setGraphMouse(gm);
-		JMenuBar menuBar = new JMenuBar();
-		JMenu menu = gm.getModeMenu();
-		menu.setText("|Mouse Mode|");
-		menu.setIcon(null);
-		menu.setPreferredSize(new Dimension(90,20));
-		menuBar.add(menu);
-		target.setJMenuBar(menuBar);
-	}
-	
-	/**center the vertex in screen*/
-	public static void setAtCenter(IElement vertex, AggregateLayout<IElement, Object> al, JFrame frame, VisualizationViewer<IElement, Object> vv){
-		Point2D vertexPoint = al.transform(vertex);
-		Rectangle frame_area = frame.getBounds();
-		double calculatedDeltaY = 120.0d;
-		Point2D ctr = new Point(
-				(int)(frame_area.getX()+frame_area.getWidth()/2), 
-				(int) (frame_area.getY()+calculatedDeltaY )); //create a logical center point X_0+width/2, Y_0+120. 
-		//Note: X_0 and Y_0 are both 0, i.e., they are the left top pixel
-		double deltaX = (ctr.getX() - vertexPoint.getX());
-		double deltaY = (ctr.getY() - vertexPoint.getY());
-		MutableTransformer layout = vv.getRenderContext().getMultiLayerTransformer().getTransformer(Layer.LAYOUT);
-		layout.translate(deltaX, deltaY);
-		
-	}
-	
-	/**
-	 * Retorna um objeto de visualização {@link VisualizationViewer} representado
-	 * a partir de um objeto da classe {@link SysRoot}
-	 * 
-	 * @param root
-	 * 		Par�metro que referencia a raiz do programa.
-	 * @return
-	 */
-	public static VisualizationViewer<IElement, Object> createVisualizationViewerBySysRoot(
-			SysRoot root, int deltaX, int deltaY) {
-		DelegateTree<IElement, Object> delegateTree = new  DelegateTree<IElement, Object>();
-		delegateTree.addVertex(root);
-		delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
-		DelegateForest<IElement, Object> delegateForest = new DelegateForest<IElement, Object>(delegateTree);
-		VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(
-				new TreeLayout<IElement, Object>(
-						delegateForest, deltaX, deltaY));
-		return visualizationViewer;
-	}
-	
+		}
 
-}
+		/**
+		 * makes a menu bar for the GUI, based on the VV*/
+		public static void makeMenuBar(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target, IElement r){
+			DoubleClickGraphMouse<IElement, Object> gm = new DoubleClickGraphMouse<IElement, Object>(target, r);
+			vv.setGraphMouse(gm);
+			JMenuBar menuBar = new JMenuBar();
+			JMenu menu = gm.getModeMenu();
+			menu.setText("|Mouse Mode|");
+			menu.setIcon(null);
+			menu.setPreferredSize(new Dimension(90,20));
+			menuBar.add(menu);
+			target.setJMenuBar(menuBar);
+		}
+
+		/**center the vertex in screen*/
+		public static void setAtCenter(IElement vertex, AggregateLayout<IElement, Object> al, JFrame frame, VisualizationViewer<IElement, Object> vv){
+			Point2D vertexPoint = al.transform(vertex);
+			Rectangle frame_area = frame.getBounds();
+			double calculatedDeltaY = 120.0d;
+			Point2D ctr = new Point(
+					(int)(frame_area.getX()+frame_area.getWidth()/2), 
+					(int) (frame_area.getY()+calculatedDeltaY )); //create a logical center point X_0+width/2, Y_0+120. 
+			//Note: X_0 and Y_0 are both 0, i.e., they are the left top pixel
+			double deltaX = (ctr.getX() - vertexPoint.getX());
+			double deltaY = (ctr.getY() - vertexPoint.getY());
+			MutableTransformer layout = vv.getRenderContext().getMultiLayerTransformer().getTransformer(Layer.LAYOUT);
+			layout.translate(deltaX, deltaY);
+
+		}
+
+		/**
+		 * Retorna um objeto de visualização {@link VisualizationViewer} representado
+		 * a partir de um objeto da classe {@link SysRoot}
+		 * 
+		 * @param root
+		 * 		Par�metro que referencia a raiz do programa.
+		 * @return
+		 */
+		public static VisualizationViewer<IElement, Object> createVisualizationViewerBySysRoot(
+				SysRoot root, int deltaX, int deltaY) {
+			DelegateTree<IElement, Object> delegateTree = new  DelegateTree<IElement, Object>();
+			delegateTree.addVertex(root);
+			delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, root);
+			DelegateForest<IElement, Object> delegateForest = new DelegateForest<IElement, Object>(delegateTree);
+			VisualizationViewer<IElement, Object> visualizationViewer = new VisualizationViewer<IElement, Object>(
+					new TreeLayout<IElement, Object>(
+							delegateForest, deltaX, deltaY));
+			return visualizationViewer;
+		}
+
+
+	}

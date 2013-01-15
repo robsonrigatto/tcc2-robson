@@ -1,5 +1,8 @@
 package gui;
 
+import edu.uci.ics.jung.graph.Graph;
+import edu.uci.ics.jung.graph.util.Context;
+import edu.uci.ics.jung.visualization.decorators.EdgeShape;
 import graph.model.ControlFlowGraphEdge;
 import graph.model.ControlFlowGraphEdgeType;
 import graph.model.ControlFlowGraphNode;
@@ -7,7 +10,9 @@ import graph.model.ControlFlowGraphNode;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Paint;
+import java.awt.Shape;
 import java.awt.Stroke;
+import java.awt.geom.Ellipse2D;
 
 import model.IElement;
 import model.SysAdvice;
@@ -33,7 +38,7 @@ public class SysTransformers {
 			if(arg0 instanceof Float) {
 				Float num = (Float) arg0;
 				if(num % 1 == 0.5)  {
-					return new  BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dependency_slashes, 100.0f);
+					return new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dependency_slashes, 100.0f);
 				}			
 			}
 			return new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dash_slashes, 100.0f);
@@ -108,6 +113,29 @@ public class SysTransformers {
 		}
 	};
 	
+	private static Transformer<Context<Graph<IElement,Object>,Object>, Shape> edgeShape = new Transformer<Context<Graph<IElement,Object>,Object>, Shape>() {
+		
+		@Override
+		@SuppressWarnings({ "unchecked", "rawtypes" })
+		public Shape transform(Context<Graph<IElement, Object>, Object> arg0) {
+			Object element = arg0.element;
+			
+			if(element instanceof ControlFlowGraphEdge) {
+				ControlFlowGraphEdge edge = (ControlFlowGraphEdge) element;
+				
+				if(edge.getChildNode().equals(edge.getParentNode())) {
+					EdgeShape.Loop loop = new EdgeShape.Loop();
+					loop.setControlOffsetIncrement(65.0f);
+					Ellipse2D el = (Ellipse2D) loop.transform(arg0);
+					
+					return el;
+				}
+			}
+			EdgeShape.Orthogonal orthogonal = new EdgeShape.Orthogonal();
+			return orthogonal.transform(arg0);
+		}
+	};
+	
 	public Transformer<IElement, String> getToolTip() {
 		return toolTip;
 	}
@@ -121,6 +149,10 @@ public class SysTransformers {
 		return vertexToString;
 	}
 	
+	public final Transformer<Context<Graph<IElement,Object>,Object>, Shape> getEdgeShape() {
+		return edgeShape;
+	}
+	
 	public final Transformer<Object, String> getEdgeToString() {
 		return edgeToString;
 	}
@@ -128,7 +160,7 @@ public class SysTransformers {
 	public final Transformer<Object, Stroke> getEdgeStrokeTransformer() {
 		return edgeStrokeTransformer;
 	}
-
+	
 	public final float[] getDash() {
 		return dash_slashes;
 	}

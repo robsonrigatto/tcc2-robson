@@ -119,6 +119,8 @@ public class ControlFlowGraphWindow extends JFrame implements GUIWindowInterface
 					
 					if(!parentNodeFromChild.equals(referencedNode)) {
 						delegateForest.addEdge(edge, parentNodeFromChild, referencedNode);
+					} else {
+						delegateForest.addEdge(edge, parentNodeFromChild, parentNodeFromChild);
 					}
 				}
 			} else {
