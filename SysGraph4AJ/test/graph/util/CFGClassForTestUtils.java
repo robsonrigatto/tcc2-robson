@@ -1,6 +1,6 @@
 package graph.util;
 
-public class ControlFlowGraphClassForTestUtils {
+public class CFGClassForTestUtils {
 
 	public String ifElseMethod(int numero) {
 		int i = numero;

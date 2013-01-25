@@ -11,7 +11,6 @@ import javax.swing.JFrame;
 import javax.swing.JTextArea;
 
 import model.IElement;
-import model.SysElement;
 import model.SysMethod;
 import model.SysRoot;
 import visualization.CallChainM2G;

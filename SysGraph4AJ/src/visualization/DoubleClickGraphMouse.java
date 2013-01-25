@@ -30,8 +30,8 @@ import edu.uci.ics.jung.graph.DelegateForest;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
+import graph.gui.CFGUIHelper;
 import gui.CallChainWindow;
-import gui.ControlFlowGraphWindow;
 import gui.GUIWindowInterface;
 import gui.MainWindow;
 import gui.SysUtils;
@@ -81,7 +81,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 						w2.setVisible(true);
 					}
 				});
-				popup.add(this.getViewControlFlowGraphScreen(el));
+				popup.add(this.getViewControlFlowGraphScreen((SysMethod)el));
 			}
 			if(vertex!=null){
 				popup.add(this.getViewPropertiesScreen(el));
@@ -105,12 +105,19 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 		};
 	}
 
+	/**
+	 * Retorna um item do popup para geração do CFG a partir do {@link SysMethod} alvo
+	 *  
+	 * @param sysMethod
+	 * 		método que será utilizado na construção do CFG
+	 * @return executa a operação de construção do CFG a partir do {@link SysMethod}
+	 */
 	@SuppressWarnings("serial")
-	private AbstractAction getViewControlFlowGraphScreen(final SysElement el) {
-		return new AbstractAction("View Graph Flow Control"){
+	private AbstractAction getViewControlFlowGraphScreen(final SysMethod sysMethod) {
+		return new AbstractAction("View Graph Flow Control") {
+			
 			public void actionPerformed(ActionEvent arg0) {
-				ControlFlowGraphWindow w = new ControlFlowGraphWindow((SysMethod) el);
-				w.setVisible(true);
+				CFGUIHelper.addCFGToWindowInterface(root, sysMethod, DoubleClickGraphMouse.this.windowInterface);
 			}
 		};
 	}

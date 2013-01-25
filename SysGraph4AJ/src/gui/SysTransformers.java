@@ -3,9 +3,9 @@ package gui;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.decorators.EdgeShape;
-import graph.model.ControlFlowGraphEdge;
-import graph.model.ControlFlowGraphEdgeType;
-import graph.model.ControlFlowGraphNode;
+import graph.model.CFGEdge;
+import graph.model.CFGEdgeType;
+import graph.model.CFGNode;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -53,11 +53,11 @@ public class SysTransformers {
 				if(num % 1 == 0.5) {
 					return new Integer((int)(num/1)).toString();
 				}
-			} else if(arg0 instanceof ControlFlowGraphEdge) {
-				ControlFlowGraphEdge edge = (ControlFlowGraphEdge) arg0;
-				ControlFlowGraphEdgeType edgeType = edge.getEdgeType();
-				return edgeType == null || ControlFlowGraphEdgeType.REFERENCE.equals(edgeType) ? 
-						ControlFlowGraphEdgeType.GOTO.name() : edgeType.toString();
+			} else if(arg0 instanceof CFGEdge) {
+				CFGEdge edge = (CFGEdge) arg0;
+				CFGEdgeType edgeType = edge.getEdgeType();
+				return edgeType == null || CFGEdgeType.REFERENCE.equals(edgeType) ? 
+						CFGEdgeType.GOTO.name() : edgeType.toString();
 			}
 			return "";
 		}
@@ -81,8 +81,8 @@ public class SysTransformers {
 			if(arg0 instanceof SysField)
 				return Color.GRAY;
 			
-			if(arg0 instanceof ControlFlowGraphNode) {
-				ControlFlowGraphNode node = (ControlFlowGraphNode) arg0;
+			if(arg0 instanceof CFGNode) {
+				CFGNode node = (CFGNode) arg0;
 				return node.isReference() ? Color.GREEN : node.isTryStatement() ? Color.BLUE : Color.ORANGE;
 			}
 			
@@ -120,8 +120,8 @@ public class SysTransformers {
 		public Shape transform(Context<Graph<IElement, Object>, Object> arg0) {
 			Object element = arg0.element;
 			
-			if(element instanceof ControlFlowGraphEdge) {
-				ControlFlowGraphEdge edge = (ControlFlowGraphEdge) element;
+			if(element instanceof CFGEdge) {
+				CFGEdge edge = (CFGEdge) element;
 				
 				if(edge.getChildNode().equals(edge.getParentNode())) {
 					EdgeShape.Loop loop = new EdgeShape.Loop();

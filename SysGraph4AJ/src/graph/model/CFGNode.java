@@ -1,6 +1,9 @@
 package graph.model;
 
 
+import graph.processing.CFGBuilder;
+import graph.processing.CFGProcessor;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -11,30 +14,49 @@ import model.IElement;
 
 import org.apache.bcel.generic.InstructionHandle;
 
-public class ControlFlowGraphNode implements IElement {
+/**
+ * Entidade que representa um nó na estrutura de um grafo de fluxo de controle. 
+ * <br>
+ * A construção dessa estrutura é feita através das classes {@link CFGBuilder} e {@link CFGProcessor}.
+ * 
+ * @author robson
+ *
+ */
+public class CFGNode implements IElement {
 	
 	private List<InstructionHandle> instructions;
 	
-	private Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> childNodes;
+	private Map<CFGNode, CFGEdgeType> childNodes;
 	
 	private Boolean tryStatement;
 	
 	private Boolean isReference;
 	
-	private ControlFlowGraphNode parentNode;
+	private CFGNode parentNode;
 	
-	public ControlFlowGraphNode() {
+	public CFGNode() {
 		this.instructions = new ArrayList<InstructionHandle>();
-		this.childNodes = new HashMap<ControlFlowGraphNode, ControlFlowGraphEdgeType>();
+		this.childNodes = new HashMap<CFGNode, CFGEdgeType>();
 		this.tryStatement = false;
 		this.isReference = false;
 		this.parentNode = null;
 	}
 	
+	/**
+	 * Adiciona uma instrução do tipo {@link InstructionHandle} na lista de todas
+	 * as instruções processadas nesse nó.
+	 * 
+	 * @param instruction
+	 * 		instrução a ser adicionada na lista
+	 */
 	public void addInstruction(InstructionHandle instruction) {
 		this.instructions.add(instruction);
 	}
 
+	/**
+	 * 
+	 * @return todas as instruções pertencentes a este nó
+	 */
 	public List<InstructionHandle> getInstructions() {
 		return instructions;
 	}
@@ -42,25 +64,33 @@ public class ControlFlowGraphNode implements IElement {
 	/**
 	 * adiciona um nó filho no grafo.
 	 */
-	public void addChildNode(ControlFlowGraphNode childNode, ControlFlowGraphEdgeType edgeType) {
+	public void addChildNode(CFGNode childNode, CFGEdgeType edgeType) {
 		if(childNode != null) {
 			this.childNodes.put(childNode, edgeType);
 			childNode.setOwner(this);
 		}
 	}
 
-	public Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> getChildNodes() {
+	/**
+	 * 
+	 * @return o mapa de nós filhos
+	 */
+	public Map<CFGNode, CFGEdgeType> getChildNodes() {
 		return childNodes;
 	}
 	
-	public void setChildNodes(Map<ControlFlowGraphNode, ControlFlowGraphEdgeType> childNodes) {
+	public void setChildNodes(Map<CFGNode, CFGEdgeType> childNodes) {
 		this.childNodes = childNodes;
 		
-		for(ControlFlowGraphNode childNode : this.childNodes.keySet()) {
+		for(CFGNode childNode : this.childNodes.keySet()) {
 			childNode.setOwner(this);
 		}
 	}
 
+	/**
+	 * 
+	 * @return se o nó é pai de um block try/catch/finally
+	 */
 	public Boolean isTryStatement() {
 		return tryStatement;
 	}
@@ -69,6 +99,10 @@ public class ControlFlowGraphNode implements IElement {
 		this.tryStatement = tryStatement;
 	}
 
+	/**
+	 * 
+	 * @return se o nó é uma referência a outro já processado
+	 */
 	public Boolean isReference() {
 		return isReference;
 	}
@@ -82,7 +116,7 @@ public class ControlFlowGraphNode implements IElement {
 	}
 
 	public void setOwner(IElement parentNode) {
-		this.parentNode = (ControlFlowGraphNode) parentNode;
+		this.parentNode = (CFGNode) parentNode;
 	}
 
 	@Override
@@ -110,7 +144,7 @@ public class ControlFlowGraphNode implements IElement {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ControlFlowGraphNode other = (ControlFlowGraphNode) obj;
+		CFGNode other = (CFGNode) obj;
 		if (instructions == null) {
 			if (other.instructions != null)
 				return false;
@@ -134,7 +168,7 @@ public class ControlFlowGraphNode implements IElement {
 		return this.getChildNodes().keySet();
 	}
 	
-	public ControlFlowGraphEdgeType getChildTypeByNode(ControlFlowGraphNode childNode) {
+	public CFGEdgeType getChildTypeByNode(CFGNode childNode) {
 		return this.childNodes.get(childNode);
 	}
 }
