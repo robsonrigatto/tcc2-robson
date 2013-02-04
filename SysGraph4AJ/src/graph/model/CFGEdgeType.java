@@ -1,5 +1,7 @@
 package graph.model;
 
+import graph.gui.CFGEdge;
+
 /**
  * Representa o tipo relacionado a um nó pai com um nó filho.
  * 

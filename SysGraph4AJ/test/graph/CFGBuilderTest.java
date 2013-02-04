@@ -6,13 +6,13 @@ import graph.util.CFGClassForTestUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import junit.framework.Assert;
 
-
 import org.apache.bcel.generic.InstructionHandle;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -51,13 +51,14 @@ public class CFGBuilderTest {
 		
 		CFGNode node1 = childrenBlocks.get(0);
 		List<CFGNode> childNodesFromNode1 = new ArrayList<CFGNode>(node1.getChildNodes().keySet());
+		Collections.sort(childNodesFromNode1, this.getComparatorToSortChildList());
 		Assert.assertEquals(2, childNodesFromNode1.size());
 		
 		CFGNode node3 = childNodesFromNode1.get(0);
-		Assert.assertEquals(2, node3.getChildNodes().size());
+		Assert.assertEquals(1, node3.getChildNodes().size());
 		
 		CFGNode node4 = childNodesFromNode1.get(1);
-		Assert.assertEquals(1, node4.getChildNodes().size());
+		Assert.assertEquals(2, node4.getChildNodes().size());
 	}
 
 	@Test
@@ -66,36 +67,19 @@ public class CFGBuilderTest {
 		
 		Assert.assertNotNull(node0);
 		
-		List<CFGNode> childNodesFromNode0 = new ArrayList<CFGNode>(node0.getChildNodes().keySet());
-		CFGNode node1 = childNodesFromNode0.get(0);
-		CFGNode node2 = childNodesFromNode0.get(1);
+		List<CFGNode> childNodesFromNode0AsList = new ArrayList<CFGNode>(node0.getChildNodes().keySet());
+		Collections.sort(childNodesFromNode0AsList, this.getComparatorToSortChildList());
 		
-		Assert.assertEquals(8, node1.getChildNodes().size());
+		CFGNode node1 = childNodesFromNode0AsList.get(0);
+		CFGNode node2 = childNodesFromNode0AsList.get(1);
 		
-		for(CFGNode childNodeFromNode1 : node1.getChildNodes().keySet()) {
+		Assert.assertEquals(1, node1.getChildNodes().size());
+		
+		for(CFGNode childNodeFromNode1 : node2.getChildNodes().keySet()) {
 			Assert.assertEquals(0, childNodeFromNode1.getChildNodes().size());
 		}
 		
-		Assert.assertEquals(1, node2.getChildNodes().size());		
-	}
-
-	@Test
-	@Ignore
-	public void aspectTest() {		
-		CFGNode node0 = CONTROL_FLOW_GRAPH_BUILDER.build(CFGClassForTestUtils.class, "aspectMethod");
-		
-		Assert.assertNotNull(node0);
-		
-		List<CFGNode> childrenBlocks = new ArrayList<CFGNode>(node0.getChildNodes().keySet());
-		//Assert.assertEquals(1, node0.getAspectInstructions().size());
-		Assert.assertEquals(2, childrenBlocks.size());
-		
-		CFGNode node1 = childrenBlocks.get(0);
-		Assert.assertEquals(0, node1.getChildNodes().size());
-		
-		CFGNode node2 = childrenBlocks.get(1);
-		Assert.assertEquals(1, node2.getChildNodes().size());
-		//Assert.assertEquals(1, node2.getAspectInstructions().size());
+		Assert.assertEquals(8, node2.getChildNodes().size());		
 	}
 	
 	@Test
@@ -119,5 +103,33 @@ public class CFGBuilderTest {
 		CFGNode node2 = childrenBlocks.get(1);
 		
 		Assert.assertFalse(node2.isTryStatement());
+	}
+	
+	@Test
+	public void oneInstructionTest() {
+		CFGNode node0 = CONTROL_FLOW_GRAPH_BUILDER.build(CFGClassForTestUtils.class, "oneInstructionMethod");
+		Assert.assertEquals(0, node0.getChildElements().size());
+		
+		List<InstructionHandle> instructions = node0.getInstructions();
+		Assert.assertTrue(instructions.size() > 0);
+	}
+	
+	public Comparator<CFGNode> getComparatorToSortChildList() {
+		return new Comparator<CFGNode>() {
+
+			@Override
+			public int compare(CFGNode o1, CFGNode o2) {
+				int size1 = o1.getChildNodes().size();
+				int size2 = o2.getChildNodes().size();
+				if(size1 == size2) {
+					return 0;
+				} 
+				if(size1 < size2) {
+					return -1;
+				}
+				return 1;
+			}
+			
+		};
 	}
 }

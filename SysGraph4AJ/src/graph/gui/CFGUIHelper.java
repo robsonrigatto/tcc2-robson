@@ -6,21 +6,27 @@ import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.graph.DelegateForest;
 import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
-import graph.model.CFGEdge;
 import graph.model.CFGNode;
 import graph.processing.CFGBuilder;
 import gui.GUIWindowInterface;
 import gui.SysUtils;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import model.IElement;
+import model.SysAspect;
 import model.SysMethod;
 
+import org.apache.bcel.generic.ConstantPoolGen;
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.aspectj.lang.annotation.Aspect;
 
 /**
  * Classe responsável pelas operações que relacionam um {@link CFGNode} e alguma interface gráfica.
@@ -31,6 +37,10 @@ import org.apache.bcel.generic.InstructionHandle;
 public class CFGUIHelper {
 	
 	public static final CFGBuilder CFG_BUILDER = new CFGBuilder();
+	
+	public static List<SysAspect> activateAspectList = new ArrayList<SysAspect>();
+
+	public static Set<CFGNode> activateCFGNodeList = new HashSet<CFGNode>();
 	
 	/**
 	 * @param root
@@ -66,6 +76,36 @@ public class CFGUIHelper {
 		CFGUIHelper.addReferenceEdgesToForest(cfg, delegateForest);
 	}
 	
+	@SuppressWarnings({ "unchecked", "deprecation" })
+	public static void addAspectEdgesToSysGraph(CFGNode node, GUIWindowInterface windowInterface) throws ClassNotFoundException {
+		CFGUIHelper.activateCFGNodeList.add(node);
+		
+		if(!CFGUIHelper.activateAspectList.isEmpty()) {
+			ConstantPoolGen constantPoolGen = new ConstantPoolGen(CFG_BUILDER.getCurrentAnalysedMethod().getConstantPool());
+			VisualizationViewer<IElement, Object> visualizationViewer = (VisualizationViewer<IElement, Object>) windowInterface.getCenter();
+			DelegateForest<IElement, Object> delegateForest = (DelegateForest<IElement, Object>) visualizationViewer.getGraphLayout().getGraph();
+			
+			List<InstructionHandle> instructions = node.getInstructions();
+			for(InstructionHandle instruction : instructions) {
+				
+				if(instruction.getInstruction() instanceof InvokeInstruction) {
+					InvokeInstruction invokeInstruction = (InvokeInstruction) instruction.getInstruction();
+					String className = invokeInstruction.getClassName(constantPoolGen);
+					Class<?> invokeClass = Class.forName(className);
+					
+					for(SysAspect sysAspect : CFGUIHelper.activateAspectList) {
+						
+						if(className.contains(sysAspect.getName()) && invokeClass.getAnnotation(Aspect.class) != null) {
+							delegateForest.addEdge(UUID.randomUUID(), node, sysAspect);
+							break;
+						}
+					}
+				}
+			}
+			visualizationViewer.updateUI();
+		}
+	}
+	
 	/**
 	 * 
 	 * @param delegateForest
@@ -74,7 +114,6 @@ public class CFGUIHelper {
 	 * 		nó do tipo {@link CFGNode} que será removido da árvore
 	 */
 	private static void removeVertexFromCFG(DelegateForest<IElement, Object> delegateForest, CFGNode node) {
-		
 		if(node == null || delegateForest == null) {
 			return;
 		}

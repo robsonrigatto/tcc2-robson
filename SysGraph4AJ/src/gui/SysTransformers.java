@@ -3,7 +3,7 @@ package gui;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.decorators.EdgeShape;
-import graph.model.CFGEdge;
+import graph.gui.CFGEdge;
 import graph.model.CFGEdgeType;
 import graph.model.CFGNode;
 
@@ -35,13 +35,16 @@ public class SysTransformers {
 	//edge visual
 	private static Transformer<Object, Stroke> edgeStrokeTransformer = new Transformer<Object, Stroke>(){
 		public Stroke transform(Object arg0) {
+			float[] slashes = dash_slashes;
 			if(arg0 instanceof Float) {
 				Float num = (Float) arg0;
 				if(num % 1 == 0.5)  {
 					return new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dependency_slashes, 100.0f);
 				}			
+			} else if(arg0 instanceof CFGEdge) {
+				slashes = new float[]{1.0f};
 			}
-			return new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, dash_slashes, 100.0f);
+			return new BasicStroke(1.0f, BasicStroke.CAP_SQUARE, BasicStroke.JOIN_BEVEL, 10.0f, slashes, 100.0f);
 		}
 	};
 

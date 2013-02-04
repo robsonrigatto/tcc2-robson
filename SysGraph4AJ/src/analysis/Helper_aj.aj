@@ -2,7 +2,6 @@ package analysis;
 
 import java.io.PrintStream;
 
-
 public aspect Helper_aj {
 
 	private boolean printInConsole = false; 

@@ -65,6 +65,10 @@ public class MainWindow extends JFrame implements GUIWindowInterface {
 		this.leftPanel.setLayout(new BoxLayout(this.leftPanel, BoxLayout.PAGE_AXIS));
 		this.setUpContainerProperties();
 	}
+	
+	public static MainWindow getInstance() {
+		return self;
+	}
 
 	/**
 	 * Inicializa as propriedades do container do frame

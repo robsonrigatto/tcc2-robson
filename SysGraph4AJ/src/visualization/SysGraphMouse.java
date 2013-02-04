@@ -31,12 +31,13 @@ import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
 import graph.gui.CFGUIHelper;
+import graph.model.CFGNode;
 import gui.CallChainWindow;
 import gui.GUIWindowInterface;
 import gui.MainWindow;
 import gui.SysUtils;
 
-public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
+public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 
 	private static final int CALLCAIN_INDICATOR = 1;
 	private static final int MAINWINDOW_INDICATOR = 2;
@@ -47,8 +48,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	private int deltaX = 100;
 	private int deltaY = 80;
 
-
-	public DoubleClickGraphMouse(GUIWindowInterface f, IElement r){
+	public SysGraphMouse(GUIWindowInterface f, IElement r){
 		this.root = r;
 		this.windowInterface = f;
 	}
@@ -58,14 +58,14 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes", "serial" })
 	private void rightClick(MouseEvent e) {
-		final VisualizationViewer<V,E> visualizationViewer = (VisualizationViewer<V,E>)e.getSource();
+		final VisualizationViewer<IElement,Object> visualizationViewer = (VisualizationViewer<IElement,Object>)e.getSource();
 		Point2D p = e.getPoint();
-		GraphElementAccessor<V,E> pickSupport = visualizationViewer.getPickSupport();
+		GraphElementAccessor<IElement,Object> pickSupport = visualizationViewer.getPickSupport();
 		if(pickSupport != null) {
 			final Layout l = visualizationViewer.getModel().getGraphLayout();
-			SysElement vertex = (SysElement)pickSupport.getVertex(l, p.getX(), p.getY());
+			IElement vertex = (IElement) pickSupport.getVertex(l, p.getX(), p.getY());
 			JPopupMenu popup = new JPopupMenu();
-			final SysElement el = vertex;
+			final IElement el = vertex;
 			if(vertex instanceof SysMethod){
 				final SysMethod m = (SysMethod)vertex;
 				popup.add(new AbstractAction("View Call Chain"){
@@ -82,9 +82,16 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 					}
 				});
 				popup.add(this.getViewControlFlowGraphScreen((SysMethod)el));
+			
+			} else if(vertex instanceof CFGNode) {
+				CFGNode node = (CFGNode) vertex;
+				if(node != null && !node.isTryStatement() && node.getInstructions().size() > 0) {
+					popup.add(this.getViewAspectsAssociation(node));
+				}
 			}
-			if(vertex!=null){
-				popup.add(this.getViewPropertiesScreen(el));
+
+			if(vertex instanceof SysElement && vertex != null){
+				popup.add(this.getViewPropertiesScreen((SysElement)el));
 			}
 			popup.show(visualizationViewer, e.getX(), e.getY());
 		}
@@ -104,6 +111,20 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 			}
 		};
 	}
+	
+	@SuppressWarnings("serial")
+	private AbstractAction getViewAspectsAssociation(final CFGNode node) {
+		return new AbstractAction("View Aspect Association") {
+			
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					CFGUIHelper.addAspectEdgesToSysGraph(node, SysGraphMouse.this.windowInterface);
+				} catch (ClassNotFoundException e) {
+					e.printStackTrace();
+				}
+			}
+		};
+	}
 
 	/**
 	 * Retorna um item do popup para geração do CFG a partir do {@link SysMethod} alvo
@@ -117,7 +138,7 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 		return new AbstractAction("View Graph Flow Control") {
 			
 			public void actionPerformed(ActionEvent arg0) {
-				CFGUIHelper.addCFGToWindowInterface(root, sysMethod, DoubleClickGraphMouse.this.windowInterface);
+				CFGUIHelper.addCFGToWindowInterface(root, sysMethod, SysGraphMouse.this.windowInterface);
 			}
 		};
 	}
@@ -132,9 +153,9 @@ public class DoubleClickGraphMouse<V,E> extends DefaultModalGraphMouse<V,E> {
 
 		if(clickedNow - this.lastTimeClicked <= this.doubleClickTime) {
 			this.lastTimeClicked = clickedNow;
-			VisualizationViewer<V,E> visualizationViewer = (VisualizationViewer<V,E>) e.getSource();
+			VisualizationViewer<IElement,Object> visualizationViewer = (VisualizationViewer<IElement,Object>) e.getSource();
 			Point2D p = e.getPoint();
-			GraphElementAccessor<V,E> pickSupport = visualizationViewer.getPickSupport();
+			GraphElementAccessor<IElement,Object> pickSupport = visualizationViewer.getPickSupport();
 			if(pickSupport != null) {
 				SysElement vertex = (SysElement)pickSupport.getVertex(visualizationViewer.getModel().getGraphLayout(), p.getX(), p.getY());
 				boolean isWorkingOnVisualizationViewer = false;

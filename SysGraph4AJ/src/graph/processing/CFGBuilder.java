@@ -25,6 +25,8 @@ public class CFGBuilder {
 	private static final CFGProcessor CONTROL_FLOW_GRAPH_PROCESSOR = new CFGProcessor();
 	
 	private CFGNode currentCFGNode;
+	
+	private org.apache.bcel.classfile.Method currentAnalysedMethod;
 
 	/**
 	 * Constrói um grafo de fluxo de controle a partir de um {@link Method} passado por parâmetro.
@@ -38,8 +40,8 @@ public class CFGBuilder {
 		try {
 			Class<?> declaringClass = method.getDeclaringClass();
 			JavaClass javaClass = Repository.lookupClass(declaringClass);
-			org.apache.bcel.classfile.Method methodBcel = javaClass.getMethod(method);
-			MethodGen methodGen = new MethodGen(methodBcel, declaringClass.getCanonicalName(), new ConstantPoolGen(methodBcel.getConstantPool()));
+			this.currentAnalysedMethod = javaClass.getMethod(method);
+			MethodGen methodGen = new MethodGen(this.currentAnalysedMethod, declaringClass.getCanonicalName(), new ConstantPoolGen(this.currentAnalysedMethod.getConstantPool()));
 
 			this.currentCFGNode = CONTROL_FLOW_GRAPH_PROCESSOR.process(methodGen);
 			return this.getCurrentCFGNode();	
@@ -72,5 +74,9 @@ public class CFGBuilder {
 
 	public CFGNode getCurrentCFGNode() {
 		return currentCFGNode;
+	}
+
+	public org.apache.bcel.classfile.Method getCurrentAnalysedMethod() {
+		return currentAnalysedMethod;
 	}
 }

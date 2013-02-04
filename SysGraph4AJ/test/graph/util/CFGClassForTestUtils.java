@@ -13,7 +13,7 @@ public class CFGClassForTestUtils {
 	public void forMethod(String algumaCoisa){
 		for(int i = 0; i < algumaCoisa.length(); i++){
 			if(i == 0) {
-				System.out.println(i);
+				System.out.println(i+"");
 			}
 		}
 	}
@@ -65,14 +65,7 @@ public class CFGClassForTestUtils {
 		}
 	}
 	
-	@SuppressWarnings("unused")
-	public void aspectMethod() {
-		int i = 0;
-		i++;
-		
-		if(new Boolean("false")) {
-			System.out.println("segunda linha");
-		}
+	public void oneInstructionMethod() {
+		System.out.println("oi");
 	}
-
 }
