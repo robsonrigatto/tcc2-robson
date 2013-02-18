@@ -3,9 +3,6 @@ package gui;
 import edu.uci.ics.jung.graph.Graph;
 import edu.uci.ics.jung.graph.util.Context;
 import edu.uci.ics.jung.visualization.decorators.EdgeShape;
-import graph.gui.CFGEdge;
-import graph.model.CFGEdgeType;
-import graph.model.CFGNode;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -27,6 +24,17 @@ import model.SysPointcut;
 
 import org.apache.commons.collections15.Transformer;
 
+import cfg.gui.CFGEdge;
+import cfg.model.CFGEdgeType;
+import cfg.model.CFGNode;
+
+/**
+ * Classe responsável por estilizar o conteúdo de um {@link Graph} renderizado em uma tela.
+ * 
+ * @author felipe
+ * @author robson
+ *
+ */
 public class SysTransformers {
 	
 	protected static float[] dash_slashes = {10.0f};
@@ -126,12 +134,19 @@ public class SysTransformers {
 			if(element instanceof CFGEdge) {
 				CFGEdge edge = (CFGEdge) element;
 				
-				if(edge.getChildNode().equals(edge.getParentNode())) {
+				CFGNode childNode = edge.getChildNode();
+				if(childNode.equals(edge.getParentNode())) {
 					EdgeShape.Loop loop = new EdgeShape.Loop();
 					loop.setControlOffsetIncrement(65.0f);
 					Ellipse2D el = (Ellipse2D) loop.transform(arg0);
 					
 					return el;
+					
+				} else if(childNode.equals(edge.getParentNode().getOwner())) {
+					EdgeShape.QuadCurve quadCurve = new EdgeShape.QuadCurve();
+					quadCurve.setControlOffsetIncrement(15.0f);
+					
+					return quadCurve.transform(arg0);
 				}
 			}
 			EdgeShape.Orthogonal orthogonal = new EdgeShape.Orthogonal();

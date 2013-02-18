@@ -1,8 +1,8 @@
-package graph.gui;
+package cfg.gui;
 
+import cfg.model.CFGEdgeType;
+import cfg.model.CFGNode;
 import edu.uci.ics.jung.graph.DelegateTree;
-import graph.model.CFGEdgeType;
-import graph.model.CFGNode;
 
 /**
  * Representa uma aresta no grafo de fluxo de controle. Essa classe é utilizada somente no que diz

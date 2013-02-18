@@ -1,9 +1,7 @@
-package graph.processing;
+package cfg.processing;
 
 
 
-import graph.model.CFGEdgeType;
-import graph.model.CFGNode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,6 +23,9 @@ import org.apache.bcel.generic.ReturnInstruction;
 import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.TABLESWITCH;
 import org.apache.bcel.verifier.structurals.ControlFlowGraph;
+
+import cfg.model.CFGEdgeType;
+import cfg.model.CFGNode;
 
 /**
  * Classe responsável pelo processamento de uma instância de {@link CFGNode}
@@ -244,10 +245,10 @@ public class CFGProcessor {
 		InstructionHandle ifTrueNextInstruction = branchHandle.getTarget();	
 
 		blockNode.addChildNode(this.processInstruction(ifTrueNextInstruction, blockNode, processedInstructionIds), 
-				CFGEdgeType.IF);
+				CFGEdgeType.T);
 
 		blockNode.addChildNode(this.processInstruction(instructionHandle.getNext(), blockNode, processedInstructionIds), 
-				CFGEdgeType.ELSE);
+				CFGEdgeType.F);
 	}
 
 	/**

@@ -1,4 +1,4 @@
-package graph.util;
+package cfg.util;
 
 public class CFGClassForTestUtils {
 

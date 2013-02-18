@@ -22,33 +22,33 @@ import model.SysRoot;
 import analysis.ClassAnalysis2;
 import analysis.MethodAnalysis;
 import analysis.SysAnalysis;
+import cfg.gui.CFGModelToGraph;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.GraphElementAccessor;
 import edu.uci.ics.jung.algorithms.layout.Layout;
-import edu.uci.ics.jung.algorithms.layout.TreeLayout;
-import edu.uci.ics.jung.graph.DelegateForest;
-import edu.uci.ics.jung.graph.DelegateTree;
 import edu.uci.ics.jung.visualization.VisualizationViewer;
 import edu.uci.ics.jung.visualization.control.DefaultModalGraphMouse;
-import graph.gui.CFGUIHelper;
-import graph.model.CFGNode;
 import gui.CallChainWindow;
 import gui.GUIWindowInterface;
 import gui.MainWindow;
-import gui.SysUtils;
 
+/**
+ * Classe responsável por tratar os eventos de click pelo mouse no grafo.
+ * 
+ * @author felipe
+ * @author robson
+ *
+ */
 public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 
 	private static final int CALLCAIN_INDICATOR = 1;
 	private static final int MAINWINDOW_INDICATOR = 2;
 	private long lastTimeClicked=0l;
 	private long doubleClickTime = 400l;
-	private IElement root;
+	private SysRoot root;
 	private GUIWindowInterface windowInterface;
-	private int deltaX = 100;
-	private int deltaY = 80;
 
-	public SysGraphMouse(GUIWindowInterface f, IElement r){
+	public SysGraphMouse(GUIWindowInterface f, SysRoot r){
 		this.root = r;
 		this.windowInterface = f;
 	}
@@ -81,14 +81,12 @@ public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 						w2.setVisible(true);
 					}
 				});
-				popup.add(this.getViewControlFlowGraphScreen((SysMethod)el));
-			
-			} else if(vertex instanceof CFGNode) {
-				CFGNode node = (CFGNode) vertex;
-				if(node != null && !node.isTryStatement() && node.getInstructions().size() > 0) {
-					popup.add(this.getViewAspectsAssociation(node));
+				AbstractAction viewControlFlowGraphScreen = this.getViewControlFlowGraphScreen((SysMethod)el);
+				if(viewControlFlowGraphScreen != null) {
+					popup.add(viewControlFlowGraphScreen);
 				}
-			}
+			
+			} 
 
 			if(vertex instanceof SysElement && vertex != null){
 				popup.add(this.getViewPropertiesScreen((SysElement)el));
@@ -111,20 +109,6 @@ public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 			}
 		};
 	}
-	
-	@SuppressWarnings("serial")
-	private AbstractAction getViewAspectsAssociation(final CFGNode node) {
-		return new AbstractAction("View Aspect Association") {
-			
-			public void actionPerformed(ActionEvent arg0) {
-				try {
-					CFGUIHelper.addAspectEdgesToSysGraph(node, SysGraphMouse.this.windowInterface);
-				} catch (ClassNotFoundException e) {
-					e.printStackTrace();
-				}
-			}
-		};
-	}
 
 	/**
 	 * Retorna um item do popup para geração do CFG a partir do {@link SysMethod} alvo
@@ -135,10 +119,11 @@ public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 	 */
 	@SuppressWarnings("serial")
 	private AbstractAction getViewControlFlowGraphScreen(final SysMethod sysMethod) {
-		return new AbstractAction("View Graph Flow Control") {
+				
+		return sysMethod.getMethod() == null ? null : new AbstractAction("View Graph Flow Control") {
 			
 			public void actionPerformed(ActionEvent arg0) {
-				CFGUIHelper.addCFGToWindowInterface(root, sysMethod, SysGraphMouse.this.windowInterface);
+				CFGModelToGraph.addCFGToWindowInterface(root, sysMethod, SysGraphMouse.this.windowInterface);
 			}
 		};
 	}
@@ -202,26 +187,9 @@ public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 						VisualizationViewer<IElement, Object> vv_callchain = cc.makeVV(al);
 						this.windowInterface.setCenterPanel(vv_callchain);
 						this.windowInterface.makeGoodVisual(vv_callchain);
+
 					} else {
-						DelegateTree<IElement, Object> delegateTree = new  DelegateTree<IElement, Object>();
-						delegateTree.addVertex(this.root);
-						delegateTree = ModelToGraph.putAllChildren_SysRoot(delegateTree, (SysRoot) this.root);
-						DelegateForest<IElement, Object> delegateForest = ModelToGraph.tree_to_forest(delegateTree);
-						AggregateLayout aggregateLayout = new AggregateLayout(new TreeLayout<IElement, Object>(delegateForest, this.deltaX, this.deltaY));
-						VisualizationViewer anotherVisualizationViewer = new VisualizationViewer<SysElement, Float>(aggregateLayout);
-						this.windowInterface.setCenterPanel(anotherVisualizationViewer);
-						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
-						this.windowInterface.makeGoodVisual((VisualizationViewer<IElement, Object>) this.windowInterface.getCenter());
-						this.windowInterface.makeMenuBar((VisualizationViewer<IElement, Object>) this.windowInterface.getCenter());
-						EspecialEdgesTable<IElement, Object> et = ModelToGraph.getEspecialEdges((SysRoot) this.root, delegateForest);
-						ModelToGraph.addEspecialEdges(delegateForest, et);
-						((VisualizationViewer) this.windowInterface.getCenter()).updateUI();
-						this.windowInterface.getTextArea().append("Analysing: "+vertex.toString()+"\n");
-						//centering the vertex
-						SysUtils.setAtCenter(vertex,
-								aggregateLayout, 
-								this.windowInterface.getFrame(), 
-								((VisualizationViewer) this.windowInterface.getCenter()));
+						CFGModelToGraph.reloadMainGraphWithCFGInformations(this.root, this.windowInterface, vertex);
 					}
 				}
 			}

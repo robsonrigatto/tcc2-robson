@@ -1,8 +1,5 @@
-package graph;
+package cfg;
 
-import graph.model.CFGNode;
-import graph.processing.CFGBuilder;
-import graph.util.CFGClassForTestUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,6 +11,10 @@ import junit.framework.Assert;
 
 import org.apache.bcel.generic.InstructionHandle;
 import org.junit.Test;
+
+import cfg.model.CFGNode;
+import cfg.processing.CFGBuilder;
+import cfg.util.CFGClassForTestUtils;
 
 /**
  * Classe de teste do construtor de grafo de fluxo de controle {@link CFGBuilder}

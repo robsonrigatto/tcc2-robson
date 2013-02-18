@@ -19,8 +19,8 @@ import javax.swing.JTextArea;
 
 import model.IElement;
 import model.SysRoot;
-import visualization.SysGraphMouse;
 import visualization.ModelToGraph;
+import visualization.SysGraphMouse;
 import edu.uci.ics.jung.algorithms.layout.AggregateLayout;
 import edu.uci.ics.jung.algorithms.layout.TreeLayout;
 import edu.uci.ics.jung.graph.DelegateForest;
@@ -83,7 +83,7 @@ public class SysUtils {
 
 		/**
 		 * makes a menu bar for the GUI, based on the VV*/
-		public static void makeMenuBar(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target, IElement r){
+		public static void makeMenuBar(VisualizationViewer<IElement, Object>  vv, GUIWindowInterface target, SysRoot r){
 			SysGraphMouse gm = new SysGraphMouse(target, r);
 			vv.setGraphMouse(gm);
 			JMenuBar menuBar = new JMenuBar();

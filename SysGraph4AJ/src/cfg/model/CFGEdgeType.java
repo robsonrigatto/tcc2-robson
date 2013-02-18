@@ -1,6 +1,6 @@
-package graph.model;
+package cfg.model;
 
-import graph.gui.CFGEdge;
+import cfg.gui.CFGEdge;
 
 /**
  * Representa o tipo relacionado a um nó pai com um nó filho.
@@ -18,9 +18,9 @@ public enum CFGEdgeType {
 	
 	FINALLY,
 	
-	IF,
+	T,
 	
-	ELSE,
+	F,
 	
 	GOTO,
 	

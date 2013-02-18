@@ -131,6 +131,17 @@ public class ModelToGraph {
 			}
 		}else System.err.println("et==null || f==null");
 	}
+	
+	public static void removeEspecialEdges(DelegateForest<IElement, Object> f, EspecialEdgesTable<IElement, Object> et) {
+		
+		if(et != null) {
+			Vector<Object> edges = et.getEdge();
+			for(Object edge : edges) {
+				float modifiedEdge = (Float)edge + 0.5f;
+				f.removeEdge(modifiedEdge, false);
+			}
+		}
+	}
 
 	public static DelegateForest<IElement, Object> tree_to_forest(DelegateTree dt){
 		if(dt==null)return null;

@@ -160,36 +160,7 @@ public class SysMethod implements SysElement {
 	}
 
 	public boolean equals(SysElement m) {
-		if(! (m instanceof SysMethod)) return false;
-		if (this.isStatic != ((SysMethod) m).isStatic())
-			return false;
-		if (!(this.name.equals(m.getName())))
-			return false; 
-		if (!this.returnType.equals(((SysMethod) m).getReturnType()))
-			return false; 
-		if (parameters.size() != ((SysMethod) m).getParameters().size())
-			return false; 
-
-
-		boolean contains; 
-		String compare; 
-		Iterator<String> i1 = this.parameters.iterator();
-		Iterator<String> i2; 
-		while (i1.hasNext()) {
-			i2 = ((SysMethod) m).getParameters().iterator();
-			compare = i1.next();
-			contains = false;
-			while (i2.hasNext()) {      
-				if (i2.next().equals(compare)) {
-					contains = true;
-					break;
-				}
-			}
-
-			if (!contains)
-				return false; 
-		}
-		return true;
+		return this.equals((Object)m);
 	}
 
 	public SysElement get(String thisName, String sig, boolean isLast) {
@@ -302,6 +273,33 @@ public class SysMethod implements SysElement {
 	public void setOwner(IElement owner) {
 		this.owner = (SysElement) owner;
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((method == null) ? 0 : method.hashCode());
+		return result;
+	}
+
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SysMethod other = (SysMethod) obj;
+		if (method == null) {
+			if (other.method != null)
+				return false;
+		} else if (!method.equals(other.method))
+			return false;
+		return this.getOwner().equals(other.getOwner());
+	}
+
 
 	public String toString(){
 		return this.visibility + (this.isStatic?" static ":" ")+this.name+ " " + this.getSignature();

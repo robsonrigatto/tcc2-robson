@@ -1,8 +1,6 @@
-package graph.model;
+package cfg.model;
 
 
-import graph.processing.CFGBuilder;
-import graph.processing.CFGProcessor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,8 +9,12 @@ import java.util.Map;
 import java.util.Set;
 
 import model.IElement;
+import model.SysMethod;
 
 import org.apache.bcel.generic.InstructionHandle;
+
+import cfg.processing.CFGBuilder;
+import cfg.processing.CFGProcessor;
 
 /**
  * Entidade que representa um nó na estrutura de um grafo de fluxo de controle. 
@@ -33,6 +35,8 @@ public class CFGNode implements IElement {
 	private Boolean isReference;
 	
 	private CFGNode parentNode;
+	
+	private SysMethod sysMethod;
 	
 	public CFGNode() {
 		this.instructions = new ArrayList<InstructionHandle>();
@@ -111,6 +115,16 @@ public class CFGNode implements IElement {
 		this.isReference = isReference;
 	}
 
+	public SysMethod getSysMethod() {
+		return sysMethod;
+	}
+
+	public void setSysMethod(SysMethod sysMethod) {
+		if(this.sysMethod == null) {
+			this.sysMethod = sysMethod;
+		}
+	}
+
 	public IElement getOwner() {
 		return parentNode;
 	}
@@ -118,7 +132,7 @@ public class CFGNode implements IElement {
 	public void setOwner(IElement parentNode) {
 		this.parentNode = (CFGNode) parentNode;
 	}
-
+	
 	@Override
 	public String toString() {				
 		return this.instructions.size() == 0 || this.tryStatement ? "" : 
@@ -149,6 +163,11 @@ public class CFGNode implements IElement {
 			if (other.instructions != null)
 				return false;
 		} else if (!instructions.equals(other.instructions))
+			return false;
+		if (sysMethod == null) {
+			if (other.sysMethod != null)
+				return false;
+		} else if (!sysMethod.equals(other.sysMethod))
 			return false;
 		if (tryStatement == null) {
 			if (other.tryStatement != null)
