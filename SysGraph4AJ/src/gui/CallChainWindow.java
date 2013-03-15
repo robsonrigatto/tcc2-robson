@@ -122,7 +122,7 @@ public class CallChainWindow extends JFrame implements GUIWindowInterface {
 	/**makes a menu bar given a visualization viewer*/
 	public void makeMenuBar(VisualizationViewer<IElement, Object> vv) {
 		SysUtils.makeMenuBar(vv, this, this.root);
-
+		MainWindow.getInstance().makeJUnitMenu();
 	}
 
 	

@@ -94,6 +94,9 @@ public class SysTransformers {
 			
 			if(arg0 instanceof CFGNode) {
 				CFGNode node = (CFGNode) arg0;
+				if(node.hasEnd()) {
+					return Color.BLACK;
+				}
 				return node.isReference() ? Color.GREEN : node.isTryStatement() ? Color.BLUE : Color.ORANGE;
 			}
 			

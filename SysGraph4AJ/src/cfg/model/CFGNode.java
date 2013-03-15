@@ -12,6 +12,7 @@ import model.IElement;
 import model.SysMethod;
 
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.ReturnInstruction;
 
 import cfg.processing.CFGBuilder;
 import cfg.processing.CFGProcessor;
@@ -189,5 +190,18 @@ public class CFGNode implements IElement {
 	
 	public CFGEdgeType getChildTypeByNode(CFGNode childNode) {
 		return this.childNodes.get(childNode);
+	}
+
+	public boolean hasEnd() {
+		if(this.instructions != null && this.getChildElements().isEmpty()) {
+			
+			for(InstructionHandle instructionHandle : this.getInstructions()) {
+				
+				if(instructionHandle.getInstruction() instanceof ReturnInstruction) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

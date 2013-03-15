@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import model.IElement;
 
 import org.apache.bcel.generic.BranchHandle;
 import org.apache.bcel.generic.CodeExceptionGen;
@@ -181,6 +182,7 @@ public class CFGProcessor {
 	private void processTryCatchFinallyStatement(CFGNode blockNode, 
 			Set<Integer> processedInstructionIds,
 			List<CodeExceptionGen> exceptionBlocks) {
+		CFGNode finallyBlock = null;
 
 		Iterator<CodeExceptionGen> codeExceptionIterator = exceptionBlocks.iterator();
 		while(codeExceptionIterator.hasNext()) {
@@ -206,7 +208,7 @@ public class CFGProcessor {
 			BranchHandle catchOrFinally = (BranchHandle) catchOrFinallyWithoutCast;
 
 			InstructionHandle finallyInstruction = catchOrFinally.getTarget();
-			CFGNode finallyBlock = this.processInstruction(finallyInstruction, blockNode, processedInstructionIds);	
+			finallyBlock = this.processInstruction(finallyInstruction, blockNode, processedInstructionIds);	
 			blockNode.addChildNode(finallyBlock, CFGEdgeType.FINALLY);		
 		}
 
@@ -218,13 +220,28 @@ public class CFGProcessor {
 		}
 
 		InstructionHandle tryInstruction = exceptionBlocks.get(0).getStartPC();
-		CFGNode tryBlock = this.processInstruction(tryInstruction, blockNode, processedInstructionIds);			
+		CFGNode tryBlock = this.processInstruction(tryInstruction, blockNode, processedInstructionIds);		
+		
+		this.addFinallyChildToTryNodes(tryBlock, finallyBlock);
 
 		//Para diferenciar no equals() e hashCode()
 		blockNode.addInstruction(tryInstruction);
 
 		blockNode.addChildNode(tryBlock, CFGEdgeType.TRY);
 
+	}
+
+	private void addFinallyChildToTryNodes(CFGNode tryBlock, CFGNode finallyBlock) {
+		if(finallyBlock == null || tryBlock.isReference()) {
+			return;
+		}
+		
+		for(IElement childNode : tryBlock.getChildElements()) {
+			this.addFinallyChildToTryNodes((CFGNode) childNode, finallyBlock);
+		}
+		
+		//TODO adicionar nos catch o finally
+		tryBlock.addChildNode(finallyBlock, CFGEdgeType.FINALLY);
 	}
 
 	/**

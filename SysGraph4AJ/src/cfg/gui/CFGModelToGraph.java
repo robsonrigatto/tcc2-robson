@@ -76,7 +76,7 @@ public class CFGModelToGraph {
 		//Aplica estilo no grafo, como centralizar o nó analisado e adicionar cores aos vertices
 		windowInterface.setCenterPanel(newVisualizationViewer);
 		SysUtils.makeGoodVisual(newVisualizationViewer, windowInterface);
-		SysUtils.makeMenuBar(newVisualizationViewer, windowInterface, root);
+		windowInterface.makeMenuBar(newVisualizationViewer);
 		SysUtils.setAtCenter(targetElement, aggregateLayout, windowInterface.getFrame(), newVisualizationViewer);
 
 		//Adiciona arestas de referências após a criação da árvore, pois essas arestas formam 'ciclos' na floresta, 'quebrando' a árvore

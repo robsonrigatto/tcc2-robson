@@ -13,6 +13,9 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -48,6 +51,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface {
 	 * Constructs a new window (SingleTon Instance)
 	 */
 	public MainWindow(String name) {
+		
 		super(name);
 		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 		this.setVisible(false);
@@ -85,6 +89,29 @@ public class MainWindow extends JFrame implements GUIWindowInterface {
 		this.setCenter(jl);
 		this.pack();
 		c.setVisible(true);
+	}
+	
+	public JMenu makeJUnitMenu() {
+		JMenuBar bar = this.getJMenuBar();
+		JMenu menu = new JMenu();
+		menu.setText("JUnit");
+		menu.setIcon(null);
+		menu.setPreferredSize(new Dimension(50,20));
+		JMenuItem menuItem = new JMenuItem();
+		menuItem.setText("Import");
+		menuItem.addActionListener(new JUnitActionListener());
+		menu.add(menuItem);
+		bar.add(menu);
+		return menu;
+	}
+	
+	private final class JUnitActionListener implements ActionListener {
+		public void actionPerformed(ActionEvent e) {
+			JUnitDialog j = new JUnitDialog(MainWindow.this);
+			j.pack();
+			j.setLocationRelativeTo(MainWindow.this);
+		    j.setVisible(true);
+		}
 	}
 
 	/**
@@ -255,6 +282,7 @@ public class MainWindow extends JFrame implements GUIWindowInterface {
 
 	public void makeMenuBar(VisualizationViewer<IElement, Object> visualizationViewer){
 		SysUtils.makeMenuBar(visualizationViewer, this, this.sysRoot);
+		this.makeJUnitMenu();
 	}
 
 	public boolean rightClickEnabled() {

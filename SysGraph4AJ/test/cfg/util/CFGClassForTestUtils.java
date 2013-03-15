@@ -26,46 +26,49 @@ public class CFGClassForTestUtils {
 		int i = 1;
 
 		switch (i) {
-			case 0: return "zero";
-			case 1: return "um";
-			case 2: return "dois";
-			case 3: return "tres";
-			case 4: return "quatro";
-			case 5: return "cinco";
-			case 6: return "seis";
-			default: 
-				return "sete";
+		case 0: return "zero";
+		case 1: return "um";
+		case 2: return "dois";
+		case 3: return "tres";
+		case 4: return "quatro";
+		case 5: return "cinco";
+		case 6: return "seis";
+		default: 
+			return "sete";
 		}
 	}
-	
+
 	public void tryCatchMethod() {
+		int i = 1;
+		System.out.println(i);
+
 		try {
-			int i = 1;
-			System.out.println(i);
-			
-			try {
-				System.out.println(i-1);
-			}
-			catch(StackOverflowError h) {
-				//
-			}
-			
-			catch(Exception e) {
-				e.printStackTrace();
-			}
-			
-		} catch(NullPointerException e) {
+			System.out.println(i-1);
+		}
+		catch(StackOverflowError h) {
+			//
+		}
+
+		catch(Exception e) {
 			e.printStackTrace();
-			
-		} catch(ArrayIndexOutOfBoundsException f) {
-			System.out.println("erro");
 		}
 		finally {
 			System.out.println("dnsoa");
 		}
 	}
-	
+
 	public void oneInstructionMethod() {
 		System.out.println("oi");
+	}
+	
+	public void doWhileMethod() {
+		
+		int i = 0;
+		
+		do {
+			System.out.println(i++);
+		} while(i < 10);
+		
+		return;
 	}
 }
