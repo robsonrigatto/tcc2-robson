@@ -119,8 +119,7 @@ public class SysGraphMouse extends DefaultModalGraphMouse<IElement, Object> {
 	 */
 	@SuppressWarnings("serial")
 	private AbstractAction getViewControlFlowGraphScreen(final SysMethod sysMethod) {
-				
-		return sysMethod.getMethod() == null ? null : new AbstractAction("View Graph Flow Control") {
+		return sysMethod.getMethod() == null ? null : new AbstractAction("View Control Flow Graph") {
 			
 			public void actionPerformed(ActionEvent arg0) {
 				CFGModelToGraph.addCFGToWindowInterface(root, sysMethod, SysGraphMouse.this.windowInterface);
