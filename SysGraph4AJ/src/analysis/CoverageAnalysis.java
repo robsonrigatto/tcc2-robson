@@ -1,12 +1,19 @@
 package analysis;
 
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.text.Format;
 
+import org.jacoco.core.analysis.Analyzer;
+import org.jacoco.core.analysis.CoverageBuilder;
+import org.jacoco.core.analysis.IClassCoverage;
+import org.jacoco.core.analysis.ICounter;
 import org.jacoco.core.data.ExecutionDataStore;
 import org.jacoco.core.data.SessionInfoStore;
-import org.jacoco.core.analysis.*;
 
 public class CoverageAnalysis {
+	
+	private static final Format DECIMAL_FORMAT = new DecimalFormat("0.00"); 
 
 	public static String getCoverage(String className) {
 		className = className.replace('.', '/') + ".class";
@@ -41,7 +48,7 @@ public class CoverageAnalysis {
 		double covered = Double.valueOf(counter.getCoveredRatio()) * 100.0;
 		covered = Double.isNaN(covered) ? 0 : covered;
 		Integer total = Integer.valueOf(counter.getTotalCount());
-		return covered + "% of " + total + " " + unit + ".\n"; 
+		return DECIMAL_FORMAT.format(covered) + "% of " + total + " " + unit + ".\n"; 
 	}
 
 }

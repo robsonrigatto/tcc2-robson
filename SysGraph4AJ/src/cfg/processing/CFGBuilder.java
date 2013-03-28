@@ -46,7 +46,7 @@ public class CFGBuilder {
 			org.apache.bcel.classfile.Method bcelMethod = javaClass.getMethod(method);
 			MethodGen methodGen = new MethodGen(bcelMethod, declaringClass.getCanonicalName(), new ConstantPoolGen(bcelMethod.getConstantPool()));
 
-			CFGNode cfg = CFGUIContext.CONTROL_FLOW_GRAPH_PROCESSOR.process(methodGen);
+			CFGNode cfg = new CFGProcessor().process(methodGen);
 			return cfg;	
 			
 		} catch (ClassNotFoundException e) {
