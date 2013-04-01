@@ -165,9 +165,15 @@ class JUnitDialog extends JDialog implements ActionListener,
 			Result r = junitCore.run(test);
 			String str = "";
 			if (r.getFailureCount() > 0) {
-				str = "Failure count = " + r.getFailureCount();
-				for (int i = 0; i < r.getFailureCount(); i++)
-					str += "\n" + r.getFailures().get(i).getMessage();
+				int failureCount = 0;
+				for (int i = 0; i < r.getFailureCount(); i++) {
+					String failureMessage = r.getFailures().get(i).getMessage();
+					if(failureMessage.startsWith("expected")) {
+						str += "\n" + failureMessage;
+						failureCount++;
+					}
+				}
+				str = "Failure count = " + failureCount + str;
 			}
 			str += "\n" + CoverageAnalysis.getCoverage(classNameTF.getText());
 			long end = System.currentTimeMillis();
